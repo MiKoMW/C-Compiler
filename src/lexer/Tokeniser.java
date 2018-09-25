@@ -71,7 +71,7 @@ public class Tokeniser {
     private HashMap<String,Token.TokenClass> words = new HashMap<String,Token.TokenClass>();
     private HashMap<Character,Character> chars = new HashMap<>();
 
-    void reserve(String w,Token.TokenClass tokclass){
+    private void reserve(String w,Token.TokenClass tokclass){
         words.put(w,tokclass);
     }
 
@@ -104,9 +104,7 @@ public class Tokeniser {
                 while (c != '\n' && c != '\t') {
                     c = scanner.next();
                 }
-            }
-
-            if (c == '*'){
+            }else if (c == '*'){
                 boolean looping = true; // conditional for comment
                 c = scanner.next();
 
@@ -119,8 +117,9 @@ public class Tokeniser {
                         }
                     }
                 }
+            }else {
+                return new Token(TokenClass.INVALID, line, column);
             }
-            return new Token(TokenClass.INVALID, line, column);
         }
 
 
@@ -308,7 +307,7 @@ public class Tokeniser {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
             c = scanner.peek();
-            while (Character.isLetterOrDigit(c)) {
+            while (Character.isLetterOrDigit(c) || c == '_') {
                 sb.append(c);
                 scanner.next();
                 c = scanner.peek();
