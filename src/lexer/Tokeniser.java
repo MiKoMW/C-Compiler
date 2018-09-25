@@ -89,21 +89,18 @@ public class Tokeniser {
         // get the next character
         char c = scanner.next();
 
-        // comment return Token？
         if(c == '/') {
-
             c = scanner.peek();
-
-
             // a line comment
             if (c == '/') {
                 c = scanner.next();
-
-                c = scanner.next();
-
+                c = scanner.peek();
                 while (c != '\n' && c != '\t') {
                     c = scanner.next();
+                    c = scanner.peek();
                 }
+                scanner.next();
+                return next();
             }else if (c == '*'){
                 boolean looping = true; // conditional for comment
                 c = scanner.next();
@@ -111,16 +108,15 @@ public class Tokeniser {
                 while(looping){
                     c = scanner.next();
                     if(c == '*'){
-                        c = scanner.peek();
+                        c = scanner.next();
                         if(c == '/'){
-                            c = scanner.next();
                             looping = false;
                         }
                     }
                 }
+                return next();
             }else {
-                error(c, line, column);
-                return new Token(TokenClass.INVALID, line, column);
+                return new Token(TokenClass.DIV, line, column);
             }
         }
 
@@ -129,15 +125,6 @@ public class Tokeniser {
         // skip white spaces
         if (Character.isWhitespace(c))
             return next();
-
-        // /t and /n未处理
-
-
-        // recognises the plus operator
-
-
-
-
 
         // delimiters
         switch (c){
@@ -156,7 +143,7 @@ public class Tokeniser {
             case '+': return new Token(TokenClass.PLUS,line,column);
             case '-': return new Token(TokenClass.MINUS,line,column);
             case '*': return new Token(TokenClass.ASTERIX,line,column);
-            case '/': return new Token(TokenClass.DIV,line,column);
+            //case '/': return new Token(TokenClass.DIV,line,column);
             case '%': return new Token(TokenClass.REM,line,column);
             case '.': return new Token(TokenClass.DOT,line,column);
         }
@@ -227,47 +214,50 @@ public class Tokeniser {
             }
         }
 
+        // char
         if(c == '\''){
-            c = scanner.next();
-
+            c = scanner.peek();
             Character ans = ' ';
 
-            if(c=='\\'){
-                c = scanner.next();
-                ans = chars.get(c);
-                c = scanner.peek();
-                if(c!= '\''){
-                    error(c, line, column);
-                    return new Token(TokenClass.INVALID, line, column);
-                }
-
-                c = scanner.next();
-
-                if(ans == null){
-                    error(c, line, column);
-                    return new Token(TokenClass.INVALID, line, column);
-                }else {
-                    return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
-                }
-            }else{
-                ans = c;
-
-                c = scanner.peek();
-                if(c!= '\''){
-                    error(c, line, column);
-                    return new Token(TokenClass.INVALID, line, column);
-                }
-                c = scanner.next();
-                return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
+            if(c == '\''){
+                error(c, line, column);
+                scanner.next();
+                return new Token(TokenClass.INVALID,line,column);
             }
 
+            if(c=='\\') {
+                c = scanner.next();
+                c = scanner.peek();
+                ans = chars.get(c);
+
+                //gcc 不error
+                if (ans == null) {
+                    ans = c;
+                    error(c, line, column);
+                }
+                c = scanner.next();
+            }
+
+            c = scanner.peek();
+
+            while(c != '\'') {
+                ans = c;
+                c = scanner.next();
+                c = scanner.peek();
+            }
+
+            c = scanner.next();
+
+            return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
         }
 
+        // string
         if(c == '\"'){
             Character ans = ' ';
             StringBuilder sb = new StringBuilder();
             c = scanner.peek();
             while (c != '\"') {
+
                 c = scanner.next();
 
                 if(c == '\n' || c == '\t'){
@@ -276,22 +266,20 @@ public class Tokeniser {
                 }
 
                 if(c == '\\'){
-                    c = scanner.peek();
+                    c = scanner.next();
                     ans = chars.get(c);
                     if(ans == null){
-                        c = scanner.next();
+                        ans = c;
+                        //c = scanner.next();
+                        //gcc don't raise error
                         error(c, line, column);
                         //return new Token(TokenClass.INVALID, line, column);
-                    }else{
-                        c = scanner.next();
-                        sb.append(ans);
-                        continue;
                     }
+                    sb.append(ans);
+                }else{
+                    sb.append(c);
                 }
-
-                sb.append(c);
                 c = scanner.peek();
-
             }
 
             c = scanner.next();
