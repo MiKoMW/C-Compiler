@@ -1,4 +1,5 @@
 #include "minic-stdlib.h"
+"dasdsa\b？"
 
 void main() {
   int n;
@@ -17,7 +18,10 @@ void main() {
   print_s((char*)"First ");
   print_i(n);
   print_s((char*)" terms of Fibonacci series are : ");
- 
+
+
+
+
   c = 0;
   while (c < n) {
     if ( c <= 1 )
@@ -26,6 +30,7 @@ void main() {
       {
 	next = first + second;
 	first = second;
+
 	second = next;
       }
     print_i(next);

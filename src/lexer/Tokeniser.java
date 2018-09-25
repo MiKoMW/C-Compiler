@@ -113,11 +113,13 @@ public class Tokeniser {
                     if(c == '*'){
                         c = scanner.peek();
                         if(c == '/'){
+                            c = scanner.next();
                             looping = false;
                         }
                     }
                 }
             }else {
+                error(c, line, column);
                 return new Token(TokenClass.INVALID, line, column);
             }
         }
@@ -166,6 +168,7 @@ public class Tokeniser {
                     return new Token(TokenClass.AND,line,column);
                 }
                 else{
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
             case '|':
@@ -174,6 +177,7 @@ public class Tokeniser {
                     return new Token(TokenClass.OR,line,column);
                 }
                 else {
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
             case '=':
@@ -188,6 +192,7 @@ public class Tokeniser {
                     c = scanner.next();
                     return new Token(TokenClass.NE,line,column);
                 }else {
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
 
@@ -232,11 +237,14 @@ public class Tokeniser {
                 ans = chars.get(c);
                 c = scanner.peek();
                 if(c!= '\''){
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID, line, column);
                 }
+
                 c = scanner.next();
 
                 if(ans == null){
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID, line, column);
                 }else {
                     return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
@@ -246,6 +254,7 @@ public class Tokeniser {
 
                 c = scanner.peek();
                 if(c!= '\''){
+                    error(c, line, column);
                     return new Token(TokenClass.INVALID, line, column);
                 }
                 c = scanner.next();
@@ -258,25 +267,25 @@ public class Tokeniser {
             Character ans = ' ';
             StringBuilder sb = new StringBuilder();
             c = scanner.peek();
-
-
-            if(c == '\n' || c == '\t'){
-                return new Token(TokenClass.INVALID, line, column);
-            }
-
             while (c != '\"') {
-
                 c = scanner.next();
 
+                if(c == '\n' || c == '\t'){
+                    error(c, line, column);
+                    return new Token(TokenClass.INVALID, line, column);
+                }
 
                 if(c == '\\'){
                     c = scanner.peek();
                     ans = chars.get(c);
                     if(ans == null){
                         c = scanner.next();
-                        return new Token(TokenClass.INVALID, line, column);
+                        error(c, line, column);
+                        //return new Token(TokenClass.INVALID, line, column);
                     }else{
+                        c = scanner.next();
                         sb.append(ans);
+                        continue;
                     }
                 }
 
