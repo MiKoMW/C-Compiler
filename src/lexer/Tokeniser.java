@@ -213,6 +213,9 @@ public class Tokeniser {
             String temp = sb.toString();
             if(temp.equals("#include")){
                 return new Token(TokenClass.INCLUDE,line,column);
+            }else{
+                error(c,line,column);
+                return next();
             }
         }
 
