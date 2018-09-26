@@ -68,6 +68,8 @@ public class Tokeniser {
      * To be completed
      */
 
+
+
     private HashMap<String,Token.TokenClass> words = new HashMap<String,Token.TokenClass>();
     private HashMap<Character,Character> chars = new HashMap<>();
 
@@ -186,14 +188,14 @@ public class Tokeniser {
             case '<':
                 if(scanner.peek() == '='){
                     c = scanner.next();
-                    new Token(TokenClass.LE,line,column);
+                    return new Token(TokenClass.LE,line,column);
                 }else {
                     return new Token(TokenClass.LT,line,column);
                 }
             case '>':
                 if(scanner.peek() == '=') {
                     c = scanner.next();
-                    new Token(TokenClass.GE,line,column);
+                    return new Token(TokenClass.GE,line,column);
                 }else {
                     return new Token(TokenClass.GT,line,column);
                 }
@@ -214,8 +216,53 @@ public class Tokeniser {
             }
         }
 
-        // char
+
         if(c == '\''){
+            c = scanner.peek();
+            Character ans = ' ';
+
+            if(c == '\''){
+                error(c, line, column);
+                scanner.next();
+                return new Token(TokenClass.INVALID,line,column);
+            }
+
+            if(c=='\\') {
+                c = scanner.next();
+                c = scanner.peek();
+                ans = chars.get(c);
+
+                //gcc 不error
+                if (ans == null) {
+                    ans = c;
+                    error(c, line, column);
+                }
+                c = scanner.next();
+            }else {
+                c = scanner.next();
+                ans = c;
+            }
+
+            c = scanner.peek();
+
+            if( c!= '\''){
+                error(c,line,column);
+            }
+
+            while(c != '\'') {
+                ans = c;
+                c = scanner.next();
+                c = scanner.peek();
+            }
+
+            c = scanner.next();
+
+            return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
+        }
+
+
+        // gcc version char
+        /*if(c == '\''){
             c = scanner.peek();
             Character ans = ' ';
 
@@ -249,7 +296,7 @@ public class Tokeniser {
             c = scanner.next();
 
             return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
-        }
+        }*/
 
         // string
         if(c == '\"'){
@@ -260,7 +307,7 @@ public class Tokeniser {
 
                 c = scanner.next();
 
-                if(c == '\n' || c == '\t'){
+                if(c == '\n' /*|| c == '\t'*/){
                     error(c, line, column);
                     return new Token(TokenClass.INVALID, line, column);
                 }
@@ -300,7 +347,7 @@ public class Tokeniser {
             return new Token(TokenClass.INT_LITERAL, sb.toString(),line,column);
         }
 
-        if (Character.isLetter(c)) {
+        if (Character.isLetter(c) || c == '_') {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
             c = scanner.peek();
