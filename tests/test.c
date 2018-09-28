@@ -6,3 +6,22 @@ chaar=1 chas1
 #include
 #include "minic-stdlib.h"
 
+fsadsa
+if
+12
+
+'\n'
+
+#include dassa
+>=
+<=
+==
+!=
+||
+&&
++
+]
+
+
+
+//

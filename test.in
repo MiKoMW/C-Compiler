@@ -1,7 +1,4 @@
-/n
+gcc 准许 'aab' = b
+gcc error /* /
 
-/o gcc 没反应。
-
-'dsadsa' gcc准许
-
-EOF 边界条件有问题
+my lexer don't have &

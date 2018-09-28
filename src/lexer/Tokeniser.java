@@ -92,7 +92,12 @@ public class Tokeniser {
         char c = scanner.next();
 
         if(c == '/') {
-            c = scanner.peek();
+            try{
+                c = scanner.peek();
+            } catch (EOFException e){
+                return new Token(TokenClass.DIV, line, column);
+            }
+
             // a line comment
             if (c == '/') {
                 c = scanner.next();
@@ -104,17 +109,23 @@ public class Tokeniser {
                 scanner.next();
                 return next();
             }else if (c == '*'){
-                boolean looping = true; // conditional for comment
-                c = scanner.next();
 
-                while(looping){
+                boolean looping = true; // conditional for comment
+
+                try {
                     c = scanner.next();
-                    if(c == '*'){
+                    while (looping) {
                         c = scanner.next();
-                        if(c == '/'){
-                            looping = false;
+                        if (c == '*') {
+                            c = scanner.next();
+                            if (c == '/') {
+                                looping = false;
+                            }
                         }
                     }
+                } catch (EOFException e){
+                    error(c, line, column);
+                    return new Token(TokenClass.INVALID,line,column);
                 }
                 return next();
             }else {
@@ -152,6 +163,7 @@ public class Tokeniser {
 
         switch (c){
             case '&':
+                try{
                 if(scanner.peek() == '&') {
                     c = scanner.next();
                     return new Token(TokenClass.AND,line,column);
@@ -160,23 +172,36 @@ public class Tokeniser {
                     error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
-            case '|':
-                if(scanner.peek() == '|') {
-                    c = scanner.next();
-                    return new Token(TokenClass.OR,line,column);
+                }catch (EOFException e){
+                    error(c, line, column);
+                    return new Token(TokenClass.INVALID,line,column);
                 }
-                else {
+            case '|':
+                try {
+                    if (scanner.peek() == '|') {
+                        c = scanner.next();
+                        return new Token(TokenClass.OR, line, column);
+                    } else {
+                        error(c, line, column);
+                        return new Token(TokenClass.INVALID, line, column);
+                    }
+                } catch (EOFException e){
                     error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
             case '=':
-                if(scanner.peek() == '=') {
+                try{
+                    if(scanner.peek() == '=') {
                     c = scanner.next();
                     return new Token(TokenClass.EQ,line,column);
-                }else {
+                    }else {
+                    return new Token(TokenClass.ASSIGN,line,column);
+                    }
+                } catch (EOFException e){
                     return new Token(TokenClass.ASSIGN,line,column);
                 }
             case '!':
+                try{
                 if(scanner.peek() == '=') {
                     c = scanner.next();
                     return new Token(TokenClass.NE,line,column);
@@ -184,19 +209,29 @@ public class Tokeniser {
                     error(c, line, column);
                     return new Token(TokenClass.INVALID,line,column);
                 }
+                } catch(EOFException e){
+                    error(c, line, column);
+                    return new Token(TokenClass.INVALID,line,column);
+                }
 
             case '<':
+                try{
                 if(scanner.peek() == '='){
                     c = scanner.next();
                     return new Token(TokenClass.LE,line,column);
                 }else {
                     return new Token(TokenClass.LT,line,column);
+                }}catch (EOFException e){
+                    return new Token(TokenClass.LT,line,column);
                 }
             case '>':
+                try {
                 if(scanner.peek() == '=') {
                     c = scanner.next();
                     return new Token(TokenClass.GE,line,column);
                 }else {
+                    return new Token(TokenClass.GT,line,column);
+                }} catch (EOFException e){
                     return new Token(TokenClass.GT,line,column);
                 }
         }
@@ -204,6 +239,7 @@ public class Tokeniser {
         if(c == '#'){
             StringBuilder sb = new StringBuilder();
             sb.append(c);
+            try{
             c = scanner.peek();
             while (Character.isLetterOrDigit(c)) {
                 sb.append(c);
@@ -215,12 +251,22 @@ public class Tokeniser {
                 return new Token(TokenClass.INCLUDE,line,column);
             }else{
                 error(c,line,column);
-                return next();
+                return new Token(TokenClass.INVALID,line,column);
+            }
+            } catch (EOFException e){
+                String temp = sb.toString();
+                if(temp.equals("#include")){
+                    return new Token(TokenClass.INCLUDE,line,column);
+                }else{
+                    error(c,line,column);
+                    return new Token(TokenClass.INVALID,line,column);
+                }
             }
         }
 
 
         if(c == '\''){
+            try{
             c = scanner.peek();
             Character ans = ' ';
 
@@ -261,6 +307,10 @@ public class Tokeniser {
             c = scanner.next();
 
             return new Token(TokenClass.CHAR_LITERAL,ans.toString(),line,column);
+            } catch (EOFException e){
+                error(c,line,column);
+                return new Token(TokenClass.INVALID,line,column);
+            }
         }
 
 
@@ -305,6 +355,7 @@ public class Tokeniser {
         if(c == '\"'){
             Character ans = ' ';
             StringBuilder sb = new StringBuilder();
+            try{
             c = scanner.peek();
             while (c != '\"') {
 
@@ -335,12 +386,17 @@ public class Tokeniser {
             c = scanner.next();
             String st = sb.toString();
             return new Token(TokenClass.STRING_LITERAL,st,line,column);
+            } catch (EOFException e){
+                error(c,line,column);
+                return new Token(TokenClass.INVALID,line,column);
+            }
         }
 
         if (Character.isDigit(c)) {
 
             StringBuilder sb = new StringBuilder ();
             sb.append(c);
+            try{
             c = scanner.peek();
             while (Character.isDigit (c)) {
                 sb.append(c);
@@ -348,11 +404,16 @@ public class Tokeniser {
                 c = scanner.peek();
             }
             return new Token(TokenClass.INT_LITERAL, sb.toString(),line,column);
+            }catch(EOFException e){
+                return new Token(TokenClass.INT_LITERAL, sb.toString(),line,column);
+            }
+
         }
 
         if (Character.isLetter(c) || c == '_') {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
+            try{
             c = scanner.peek();
             while (Character.isLetterOrDigit(c) || c == '_') {
                 sb.append(c);
@@ -365,6 +426,15 @@ public class Tokeniser {
             }else{
                 return new Token(TokenClass.IDENTIFIER,sb.toString(),line,column);
 
+            }
+            }catch(EOFException e){
+                String identifier = sb.toString();
+                if(words.containsKey(identifier)){
+                    return new Token(words.get(identifier),sb.toString(),line,column);
+                }else {
+                    return new Token(TokenClass.IDENTIFIER, sb.toString(), line, column);
+
+                }
             }
 
         }

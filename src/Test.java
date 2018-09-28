@@ -1,3 +1,5 @@
+import lexer.Scanner;
+
 import java.io.File;
 
 public class Test
@@ -6,7 +8,13 @@ public class Test
 
         File fl = new File("test.in");
 
+
+
         try {
+            Scanner sc = new Scanner(fl);
+
+                System.out.println(sc.peek());
+
 
         }catch (Exception e){
             e.printStackTrace();

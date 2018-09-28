@@ -20,8 +20,6 @@ public class Parser {
 
     private final Tokeniser tokeniser;
 
-
-
     public Parser(Tokeniser tokeniser) {
         this.tokeniser = tokeniser;
     }
@@ -147,6 +145,11 @@ public class Parser {
 
     private void parseFunDecls() {
         // to be completed ...
+    }
+
+    private void parseType(){
+        expect(TokenClass.INT, TokenClass.CHAR, TokenClass.VOID);
+
     }
 
     // to be completed ...
