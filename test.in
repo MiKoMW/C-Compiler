@@ -2,3 +2,5 @@ gcc 准许 'aab' = b
 gcc error /* /
 
 my lexer don't have &
+
+c语言 短路 or| 优先级
