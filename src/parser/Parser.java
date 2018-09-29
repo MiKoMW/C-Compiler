@@ -309,9 +309,15 @@ public class Parser {
 
 
     private void parsePrimary(){
+
+
         if(accept(TokenClass.LPAR)){
+
             nextToken();
+
             parseExp();
+
+
             expect(TokenClass.RPAR);
             return;
         }else{
@@ -414,76 +420,93 @@ public class Parser {
 
     private void parseExp1(){
         parseTerm();
+        while(accept(TokenClass.ASTERIX,TokenClass.DIV,TokenClass.REM)){
         if(accept(TokenClass.ASTERIX)){
             nextToken();
             parseTerm();
-            return;
-        }
-
-        if(accept(TokenClass.DIV)){
+            //return;
+        }else if(accept(TokenClass.DIV)){
             nextToken();
             parseTerm();
-            return;
-        }
-
-        if(accept(TokenClass.REM)){
+            //return;
+        }else if(accept(TokenClass.REM)){
             nextToken();
             parseTerm();
-            return;
-        }
+            //return;
+        }}
         return;
     }
 
     private void parseExp2(){
         parseExp1();
+        while (accept(TokenClass.PLUS,TokenClass.MINUS)){
         if(accept(TokenClass.PLUS)) {
             nextToken();
             parseExp1();
-            return;
-        }
-
-        if(accept(TokenClass.MINUS)) {
+            //return;
+        }else if(accept(TokenClass.MINUS)) {
             nextToken();
             parseExp1();
+            //return;
+        }
+        }
+        return;
+    }
+
+    private void parseExp3(){
+        parseExp2();
+        while(accept(TokenClass.GT,TokenClass.GE,TokenClass.LT,TokenClass.LE,TokenClass.EQ, TokenClass.NE)){
+        if(accept(TokenClass.GT)){
+            nextToken();
+            parseExp2();
             return;
+        }else if(accept(TokenClass.GE)){
+            nextToken();
+            parseExp2();
+            return;
+        }else if(accept(TokenClass.LT)){
+            nextToken();
+            parseExp2();
+            return;
+        }else if(accept(TokenClass.LE)){
+            nextToken();
+            parseExp2();
+            return;
+        }else if (accept(TokenClass.EQ)){
+            nextToken();
+            parseExp2();
+            return;
+        }else if (accept(TokenClass.NE)){
+            nextToken();
+            parseExp2();
+            return;
+        }
+        }
+        return;
+    }
+
+    private void parseExp4(){
+        parseExp3();
+        while(accept(TokenClass.AND)){
+            nextToken();
+            parseExp3();
+            //return;
         }
         return;
     }
 
     private void parseExp(){
-        parseExp2();
-        if(accept(TokenClass.GT)){
+        parseExp3();
+        while (accept(TokenClass.OR)){
             nextToken();
-            parseExp2();
-            return;
-        }
-        if(accept(TokenClass.GE)){
-            nextToken();
-            parseExp2();
-            return;
-        }
-        if(accept(TokenClass.LT)){
-            nextToken();
-            parseExp2();
-            return;
-        }
-        if(accept(TokenClass.LE)){
-            nextToken();
-            parseExp2();
-            return;
-        }
-        if (accept(TokenClass.EQ)){
-            nextToken();
-            parseExp2();
-            return;
-        }
-        if (accept(TokenClass.NE)){
-            nextToken();
-            parseExp2();
-            return;
+            parseExp4();
+            //return;
         }
         return;
+
     }
+
+
 
     private void parseBlock(){
         expect(TokenClass.LBRA);
