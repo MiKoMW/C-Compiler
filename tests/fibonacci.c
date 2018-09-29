@@ -1,5 +1,4 @@
 #include "minic-stdlib.h"
-"dasdsa\b？"
 
 void main() {
   int n;
@@ -21,6 +20,8 @@ void main() {
 
 
   c = 0;
+
+
   while (c < n) {
     if ( c <= 1 )
       next = c;
