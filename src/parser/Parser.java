@@ -459,27 +459,27 @@ public class Parser {
         if(accept(TokenClass.GT)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }else if(accept(TokenClass.GE)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }else if(accept(TokenClass.LT)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }else if(accept(TokenClass.LE)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }else if (accept(TokenClass.EQ)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }else if (accept(TokenClass.NE)){
             nextToken();
             parseExp2();
-            return;
+            //return;
         }
         }
         return;
@@ -496,7 +496,7 @@ public class Parser {
     }
 
     private void parseExp(){
-        parseExp3();
+        parseExp4();
         while (accept(TokenClass.OR)){
             nextToken();
             parseExp4();

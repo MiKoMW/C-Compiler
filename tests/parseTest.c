@@ -7,6 +7,9 @@ int main() {
     int fourth;
     if ((first || second || third || fourth) == 0)
 
+    (first >= second) && third && fourth;
+
+
     {
             return 0;
         }
