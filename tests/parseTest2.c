@@ -33,6 +33,8 @@ int main(){
             //for(int con = 0; con < a; con++){
                 if(isalpha(input[con])){
                     printf("%c",input[con]);
+                }else{
+                return 0;
                 }
             //}
             return 0;
