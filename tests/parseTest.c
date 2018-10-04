@@ -8,6 +8,14 @@ int main() {
     if ((first || second || third || fourth) == 0)
 
     (first >= second) && third && fourth;
+    (first != second) || third && fourth;
+
+    (first != second) || third <= fourth;
+
+
+    (first != second) == third && fourth;
+    (first != second) == third && fourth;
+
 
 
     {

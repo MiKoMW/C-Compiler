@@ -327,15 +327,38 @@ public class Parser {
     }
 
     private void parsePostfix(){
+
         boolean isId = accept(TokenClass.IDENTIFIER);
-
-
 
         parsePrimary();
 
+        if((accept(TokenClass.LPAR) && isId)){
 
+                nextToken();
+                if (accept(TokenClass.RPAR)) {
+                    nextToken();
+                    //return;
+                } else {
+                    //System.out.println("****");
+                    //System.out.println(token);
 
-        while(accept(TokenClass.LSBR,TokenClass.DOT) || (accept(TokenClass.LPAR) && isId)) {
+                    parseExp();
+                    //System.out.println("****");
+                    //System.out.println(token);
+
+                    while (accept(TokenClass.COMMA)) {
+                        nextToken();
+                        parseExp();
+                    }
+
+                    expect(TokenClass.RPAR);
+                    //return;
+                }
+
+                return;
+            }
+
+        while(accept(TokenClass.LSBR,TokenClass.DOT) ) {
             //System.out.println(token);
             //System.out.println(token.position);
 
@@ -348,29 +371,6 @@ public class Parser {
                 nextToken();
                 expect(TokenClass.IDENTIFIER);
                 //return;
-            }else if (accept(TokenClass.LPAR) && isId) {
-                nextToken();
-                if (accept(TokenClass.RPAR)) {
-                    nextToken();
-                    //return;
-                } else {
-                    //System.out.println("****");
-
-                    //System.out.println(token);
-
-                    parseExp();
-                    //System.out.println("****");
-                    //System.out.println(token);
-
-
-                    while (accept(TokenClass.COMMA)) {
-                        nextToken();
-                        parseExp();
-                    }
-
-                    expect(TokenClass.RPAR);
-                    //return;
-                }
             }
             //isId = accept(TokenClass.IDENTIFIER);
         }
@@ -379,6 +379,7 @@ public class Parser {
     }
 
     private void parseUnary(){
+
         if(accept(TokenClass.MINUS)){
             nextToken();
             parseTerm();
@@ -402,7 +403,6 @@ public class Parser {
     }
 
     private void parseTerm(){
-
 
         if(accept(TokenClass.LPAR) && inList(type_First,lookAhead(1).tokenClass)){
             expect(TokenClass.LPAR);

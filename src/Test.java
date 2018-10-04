@@ -27,7 +27,6 @@ public class Test
             System.out.println(e.toString());
         }
 
-
         Token.TokenClass[] Type_First = new Token.TokenClass[]{
                 Token.TokenClass.INT, Token.TokenClass.CHAR, Token.TokenClass.VOID, Token.TokenClass.STRUCT
         };

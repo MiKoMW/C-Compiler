@@ -20,14 +20,13 @@ valueat      ::= "*" exp                          # Value at operator (pointer i
 sizeof       ::= "sizeof" "(" type ")"            # size of type
 funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
 
-
-
 stmt       ::= block
              | "while" "(" exp ")" stmt              # while loop
              | "if" "(" exp ")" stmt ["else" stmt]   # if then else
              | "return" [exp] ";"                    # return
              | exp "=" exp ";"                      # assignment
              | exp ";"                               # expression statement, e.g. a function call
+
 
 
 exp        ::=
@@ -38,5 +37,31 @@ exp        ::=
 
 arrayaccess  ::= exp "[" exp "]"                  # array access
 fieldaccess  ::= exp "." IDENT                    # structure field member access
+
+
+
+
+Primary() =  Ident| Char_Li|String_Str|Int_Lit
+
+exp :: = Primary()
+      | - exp
+      | IDent (params)
+      | * exp
+      | sizeof ( exp )
+      | (type ) exp
+      | primary [ exp ]
+      | primary . Ident
+
+
+    
+
+
+      | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp
+
+
+
+
+
+
 
 
