@@ -24,7 +24,8 @@ public class Comp_Tester {
     public static void main(String[] args){
 
 
-            String pathname = "./tests/";
+            String pathname = args[0];
+            String mode = args[1];
             File file = new File(pathname);
             String[] ans = file.list();
             for(String st : ans){
@@ -33,7 +34,7 @@ public class Comp_Tester {
                 if(!st.contains(".c")){
                    continue;
                 }
-                String[] temp = new String[]{"-parser",pathname + st,"test.out"};
+                String[] temp = new String[]{mode,pathname + st,"test.out"};
                 main_test(temp);
 
             }
@@ -72,7 +73,7 @@ public class Comp_Tester {
                 System.out.println("Lexing: pass");
             else
                 System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");
-            System.exit(tokeniser.getErrorCount() == 0 ? PASS : LEXER_FAIL);
+            //System.exit(tokeniser.getErrorCount() == 0 ? PASS : LEXER_FAIL);
         } else if (mode == Mode.PARSER) {
             Parser parser = new Parser(tokeniser);
             parser.parse();

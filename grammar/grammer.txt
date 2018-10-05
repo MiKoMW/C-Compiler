@@ -41,24 +41,32 @@ fieldaccess  ::= exp "." IDENT                    # structure field member acces
 
 
 
-Primary() =  Ident| Char_Li|String_Str|Int_Lit
-
-exp :: = Primary()
-      | - exp
-      | IDent (params)
-      | * exp
-      | sizeof ( exp )
-      | (type ) exp
-      | primary [ exp ]
-      | primary . Ident
 
 
-    
 
 
-      | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp
 
 
+
+
+exp :: = exp2
+
+exp2 :: = ...
+           | exp (">" | "<" | ">=" | "<=" | "!=" | "==" | "+" | "-" | "/" | "*" | "%" | "||" | "&&") exp
+
+
+exp1 = | - post
+       | (type ) post
+       | sizeof ( type )
+       | * exp
+
+
+post ::=  | IDent (params) ll2
+          | primary [ exp ]
+          | primary . Ident
+          | primary
+
+Primary() =  Ident| Char_Li|String_Str|Int_Lit |(exp)
 
 
 
