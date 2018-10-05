@@ -22,8 +22,7 @@ public class Comp_Tester {
     }
 
     public static void main(String[] args){
-
-
+        // for easy testing
             String pathname = args[0];
             String mode = args[1];
             File file = new File(pathname);

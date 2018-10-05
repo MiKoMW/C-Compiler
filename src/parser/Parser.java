@@ -121,13 +121,13 @@ public class Parser {
             TokenClass.INT,TokenClass.CHAR, TokenClass.VOID, TokenClass.STRUCT
     };
 
+    // test weather a token class is in the list of classes
     private boolean inList(TokenClass[] expected, TokenClass tokClass){
         boolean result = false;
         for (TokenClass e : expected)
             result |= (e == tokClass);
         return result;
     }
-
 
     private void parseProgram() {
         parseIncludes();
@@ -150,7 +150,6 @@ public class Parser {
     }
 
     // includes are ignored, so does not need to return an AST node
-    // *
     private void parseIncludes() {
         if (accept(TokenClass.INCLUDE)) {
             nextToken();
@@ -167,6 +166,28 @@ public class Parser {
         }
         return;
     }
+
+    private void parseStructdecl() {
+        parseStructType();
+        expect(TokenClass.LBRA);
+        parseVardecl();
+
+
+        while (accept(type_First)) {
+            parseVardecl();
+        }
+
+        expect(TokenClass.RBRA);
+        expect(TokenClass.SC);
+        return;
+    }
+
+    private void parseStructType(){
+        expect(TokenClass.STRUCT);
+        expect(TokenClass.IDENTIFIER);
+        return;
+    }
+
 
     private void parseVarDecls() {
         // to be completed ...
@@ -211,14 +232,36 @@ public class Parser {
 
     private void parseFunDecls() {
         while(accept(type_First)){
-            //System.out.println(token.tokenClass);
-            //System.out.println(token.position);
-            //System.out.println("FarseFunDelc");
-
             parseFundecl();
         }
         return;
-        // to be completed ...
+    }
+
+
+    private void parseFundecl(){
+        parseType();
+        expect(TokenClass.IDENTIFIER);
+        expect(TokenClass.LPAR);
+
+        parseParams();
+
+        expect(TokenClass.RPAR);
+
+        parseBlock();
+        return;
+    }
+
+    private void parseParams(){
+        if(accept(type_First)){
+            nextToken();
+            expect(TokenClass.IDENTIFIER);
+            while (accept(TokenClass.COMMA)) {
+                nextToken();
+                parseType();
+                expect(TokenClass.IDENTIFIER);
+            }
+        }
+        return;
     }
 
     private void parseType(){
@@ -234,31 +277,10 @@ public class Parser {
         return;
     }
 
-    private void parseStructType(){
-        expect(TokenClass.STRUCT);
-        expect(TokenClass.IDENTIFIER);
-        return;
-    }
-
-    private void parseParams(){
-        if(accept(type_First)){
-            nextToken();
-            expect(TokenClass.IDENTIFIER);
-            while (accept(TokenClass.COMMA)) {
-                nextToken();
-                parseType();
-                expect(TokenClass.IDENTIFIER);
-            }
-        }
-        return;
-
-
-    }
 
     private void parseVardecl(){
 
         parseType();
-
 
         expect(TokenClass.IDENTIFIER);
 
@@ -269,7 +291,6 @@ public class Parser {
             nextToken();
             expect(TokenClass.INT_LITERAL);
             expect(TokenClass.RSBR);
-
             expect(TokenClass.SC);
             return;
         }else{
@@ -279,25 +300,6 @@ public class Parser {
 
     }
 
-    private void parseStructdecl() {
-        parseStructType();
-        expect(TokenClass.LBRA);
-        parseVardecl();
-
-
-        while (accept(type_First)) {
-            //System.out.println("********");
-            //System.out.println(token);
-            //System.out.println(token.position);
-            parseVardecl();
-            //System.out.println("********");
-
-        }
-
-        expect(TokenClass.RBRA);
-        expect(TokenClass.SC);
-        return;
-    }
 
     private void parseSizeof(){
         expect(TokenClass.SIZEOF);
@@ -308,16 +310,12 @@ public class Parser {
     }
 
 
+    // this is the primary element which can be in the exp
+    // This can not be separated which has the highest precedence.
     private void parsePrimary(){
-
-
         if(accept(TokenClass.LPAR)){
-
             nextToken();
-
             parseExp();
-
-
             expect(TokenClass.RPAR);
             return;
         }else{
@@ -326,6 +324,7 @@ public class Parser {
         }
     }
 
+    // Precedence level 1  Function call Array subscripting and structure member access.
     private void parsePostfix(){
 
         boolean isId = accept(TokenClass.IDENTIFIER);
@@ -335,17 +334,12 @@ public class Parser {
         if((accept(TokenClass.LPAR) && isId)){
 
                 nextToken();
+
                 if (accept(TokenClass.RPAR)) {
                     nextToken();
                     //return;
                 } else {
-                    //System.out.println("****");
-                    //System.out.println(token);
-
                     parseExp();
-                    //System.out.println("****");
-                    //System.out.println(token);
-
                     while (accept(TokenClass.COMMA)) {
                         nextToken();
                         parseExp();
@@ -354,13 +348,10 @@ public class Parser {
                     expect(TokenClass.RPAR);
                     //return;
                 }
-
                 return;
             }
 
         while(accept(TokenClass.LSBR,TokenClass.DOT) ) {
-            //System.out.println(token);
-            //System.out.println(token.position);
 
             if (accept(TokenClass.LSBR)) {
                 nextToken();
@@ -372,21 +363,21 @@ public class Parser {
                 expect(TokenClass.IDENTIFIER);
                 //return;
             }
-            //isId = accept(TokenClass.IDENTIFIER);
         }
 
         return ;
     }
 
+    // Unary operation which has precedence 2
+    // Unary minus Type cast Pointer indirection Size of type
     private void parseUnary(){
-
         if(accept(TokenClass.MINUS)){
             nextToken();
             parseTerm();
             return;
         }
 
-        if(accept(TokenClass.ASTERIX)){
+        if(accept(TokenClass.ASTERIX)) {
             nextToken();
             parseTerm();
             return;
@@ -402,6 +393,7 @@ public class Parser {
 
     }
 
+    // Level 2 recursion makes our grammar support -------1;
     private void parseTerm(){
 
         if(accept(TokenClass.LPAR) && inList(type_First,lookAhead(1).tokenClass)){
@@ -418,6 +410,8 @@ public class Parser {
 
     }
 
+
+    // level 3
     private void parseExp1(){
         parseTerm();
         while(accept(TokenClass.ASTERIX,TokenClass.DIV,TokenClass.REM)){
@@ -437,6 +431,7 @@ public class Parser {
         return;
     }
 
+    // level 4
     private void parseExp2(){
         parseExp1();
         while (accept(TokenClass.PLUS,TokenClass.MINUS)){
@@ -453,9 +448,10 @@ public class Parser {
         return;
     }
 
+    // level 5
     private void parseExp3(){
         parseExp2();
-        while(accept(TokenClass.GT,TokenClass.GE,TokenClass.LT,TokenClass.LE,TokenClass.EQ, TokenClass.NE)){
+        while(accept(TokenClass.GT,TokenClass.GE,TokenClass.LT,TokenClass.LE)){
         if(accept(TokenClass.GT)){
             nextToken();
             parseExp2();
@@ -472,41 +468,49 @@ public class Parser {
             nextToken();
             parseExp2();
             //return;
-        }else if (accept(TokenClass.EQ)){
-            nextToken();
-            parseExp2();
-            //return;
-        }else if (accept(TokenClass.NE)){
-            nextToken();
-            parseExp2();
-            //return;
         }
         }
         return;
     }
 
+    // level 6
     private void parseExp4(){
         parseExp3();
-        while(accept(TokenClass.AND)){
-            nextToken();
-            parseExp3();
-            //return;
+        while(accept(TokenClass.EQ, TokenClass.NE)){
+             if (accept(TokenClass.EQ)){
+                nextToken();
+                parseExp3();
+                //return;
+            }else if (accept(TokenClass.NE)){
+                nextToken();
+                parseExp3();
+                //return;
+            }
         }
         return;
     }
 
-    private void parseExp(){
+    // level 7
+    private void parseExp5(){
         parseExp4();
-        while (accept(TokenClass.OR)){
+        while(accept(TokenClass.AND)){
             nextToken();
             parseExp4();
             //return;
         }
         return;
-
     }
 
-
+    // level 8
+    private void parseExp(){
+        parseExp5();
+        while (accept(TokenClass.OR)){
+            nextToken();
+            parseExp5();
+            //return;
+        }
+        return;
+    }
 
     private void parseBlock(){
         expect(TokenClass.LBRA);
@@ -514,11 +518,6 @@ public class Parser {
         while(is_vardecl()){
             parseVardecl();
         }
-
-        //System.out.println("Stmt");
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println(token);
 
         while(is_stmt()){
             parseStmt();
@@ -537,33 +536,10 @@ public class Parser {
 
     }
 
-    private void parseFundecl(){
 
-        //System.out.println(":)");
-
-
-        parseType();
-        expect(TokenClass.IDENTIFIER);
-        expect(TokenClass.LPAR);
-
-
-        parseParams();
-
-
-        expect(TokenClass.RPAR);
-
-        parseBlock();
-
-
-        return;
-
-    }
 
 
     private void parseStmt(){
-
-        //System.out.println(token);
-
 
         if(accept(TokenClass.LBRA)){
             parseBlock();
@@ -602,38 +578,18 @@ public class Parser {
             }
         }
 
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("1");
-
         parseExp();
-
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("2");
 
         if(accept(TokenClass.ASSIGN)){
             nextToken();
-
             parseExp();
-
             expect(TokenClass.SC);
             return;
         }else{
             expect(TokenClass.SC);
             return;
         }
-
     }
-
-
-
-
-
-
-
-
-
 
     // to be completed ...
 }
