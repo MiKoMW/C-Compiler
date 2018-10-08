@@ -22,6 +22,9 @@ int main() {
             return 0;
         }
 
+
+   // memset(in, 0, sizeof(in));
+
         ans == 720;
         ans == (((first + 40) - second) % 40) * 9;
         ans == 360;

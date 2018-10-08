@@ -28,8 +28,11 @@ public class Comp_Tester {
             File file = new File(pathname);
             String[] ans = file.list();
             for(String st : ans){
-                System.out.println("Test case: " + st);
-
+                if(st.contains("invalid")){
+                    System.out.println("Test case: " + st);
+                }else {
+                    System.out.println("Test case: " + st);
+                }
                 if(!st.contains(".c")){
                    continue;
                 }
@@ -71,7 +74,7 @@ public class Comp_Tester {
             if (tokeniser.getErrorCount() == 0)
                 System.out.println("Lexing: pass");
             else
-                System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");
+                System.err.println("                                   Lexing: failed ("+tokeniser.getErrorCount()+" errors)");
             //System.exit(tokeniser.getErrorCount() == 0 ? PASS : LEXER_FAIL);
         } else if (mode == Mode.PARSER) {
             Parser parser = new Parser(tokeniser);

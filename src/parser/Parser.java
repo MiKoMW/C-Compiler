@@ -161,7 +161,7 @@ public class Parser {
     private void parseStructDecls() {
         // to be completed ...
 
-        while (accept(TokenClass.STRUCT)){
+        while (accept(TokenClass.STRUCT) && lookAhead(2).tokenClass == TokenClass.LBRA){
             parseStructdecl();
         }
         return;
@@ -171,7 +171,6 @@ public class Parser {
         parseStructType();
         expect(TokenClass.LBRA);
         parseVardecl();
-
 
         while (accept(type_First)) {
             parseVardecl();
@@ -253,7 +252,7 @@ public class Parser {
 
     private void parseParams(){
         if(accept(type_First)){
-            nextToken();
+            parseType();
             expect(TokenClass.IDENTIFIER);
             while (accept(TokenClass.COMMA)) {
                 nextToken();
