@@ -48,7 +48,6 @@ fieldaccess  ::= exp "." IDENT                    # structure field member acces
 
 
 
-
 exp :: = exp2
 
 exp2 :: = ...

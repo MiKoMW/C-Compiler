@@ -73,6 +73,8 @@ int main(struct emm * a, int a, int * b, struct emm a){
 
   (int) 1;
 
+  1[1][1];
+  1.a.a.a.a;
 
 }
 
