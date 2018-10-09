@@ -5,6 +5,8 @@ int main() {
 
     int ans[2];
 
+    void a;
+
         memset(ans, 0, sizeof(char));
 
        // int 0;
@@ -27,6 +29,7 @@ int main() {
 
 
             printf("%d",ans[1+2+34]);
+
 
 
 
