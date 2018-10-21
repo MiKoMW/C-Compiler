@@ -12,3 +12,6 @@ gcc error /* /
 my lexer don't have &
 
 c语言 短路 or| 优先级
+
+In both cases (global or local), it is illegal to declare twice the same identifiers in the same current block (note that this means it is illegal to declare a variable with the same name as a procedure at the global level).
+

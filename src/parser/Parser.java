@@ -1,10 +1,15 @@
 package parser;
 
+import ast.FunDecl;
+import ast.Program;
+import ast.StructTypeDecl;
+import ast.VarDecl;
 import lexer.Token;
 import lexer.Token.TokenClass;
 import lexer.Tokeniser;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 
@@ -24,11 +29,11 @@ public class Parser {
         this.tokeniser = tokeniser;
     }
 
-    public void parse() {
+    public Program parse() {
         // get the first token
         nextToken();
 
-        parseProgram();
+        return parseProgram();
     }
 
     public int getErrorCount() {
@@ -129,24 +134,13 @@ public class Parser {
         return result;
     }
 
-    private void parseProgram() {
+    private Program parseProgram() {
         parseIncludes();
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("includeOK");
-        parseStructDecls();
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("StrOK");
-        parseVarDecls();
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("VarOK");
-        parseFunDecls();
-        //System.out.println(token.tokenClass);
-        //System.out.println(token.position);
-        //System.out.println("FunOK");
+        List<StructTypeDecl> stds = parseStructDecls();
+        List<VarDecl> vds = parseVarDecls();
+        List<FunDecl> fds = parseFunDecls();
         expect(TokenClass.EOF);
+        return new Program(stds, vds, fds);
     }
 
     // includes are ignored, so does not need to return an AST node
@@ -158,13 +152,13 @@ public class Parser {
         }
     }
 
-    private void parseStructDecls() {
+    private List<StructTypeDecl> parseStructDecls() {
         // to be completed ...
 
         while (accept(TokenClass.STRUCT) && lookAhead(2).tokenClass == TokenClass.LBRA){
             parseStructdecl();
         }
-        return;
+        return null;
     }
 
     private void parseStructdecl() {
@@ -178,7 +172,7 @@ public class Parser {
 
         expect(TokenClass.RBRA);
         expect(TokenClass.SC);
-        return;
+        return ;
     }
 
     private void parseStructType(){
@@ -188,14 +182,14 @@ public class Parser {
     }
 
 
-    private void parseVarDecls() {
+    private List<VarDecl> parseVarDecls() {
         // to be completed ...
 
         while(is_vardecl()){
             parseVardecl();
 
         }
-        return;
+        return null;
     }
 
     private boolean is_vardecl(){
@@ -229,11 +223,11 @@ public class Parser {
     }
 
 
-    private void parseFunDecls() {
+    private List<FunDecl> parseFunDecls() {
         while(accept(type_First)){
             parseFundecl();
         }
-        return;
+        return null;
     }
 
 

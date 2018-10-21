@@ -25,7 +25,7 @@ public class Main {
     private static final int PARSER_FAIL    = 245;
     private static final int SEM_FAIL       = 240;
     private static final int PASS           = 0;
-    
+
     private enum Mode {
         LEXER, PARSER, AST, SEMANTICANALYSIS, GEN
     }
@@ -65,12 +65,12 @@ public class Main {
 
         Tokeniser tokeniser = new Tokeniser(scanner);
         if (mode == Mode.LEXER) {
-            for (Token t = tokeniser.nextToken(); t.tokenClass != Token.TokenClass.EOF; t = tokeniser.nextToken()) 
+            for (Token t = tokeniser.nextToken(); t.tokenClass != Token.TokenClass.EOF; t = tokeniser.nextToken())
             	System.out.println(t);
             if (tokeniser.getErrorCount() == 0)
         		System.out.println("Lexing: pass");
     	    else
-        		System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");	
+        		System.out.println("Lexing: failed ("+tokeniser.getErrorCount()+" errors)");
             System.exit(tokeniser.getErrorCount() == 0 ? PASS : LEXER_FAIL);
         } else if (mode == Mode.PARSER) {
 		    Parser parser = new Parser(tokeniser);
