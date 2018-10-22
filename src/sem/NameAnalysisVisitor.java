@@ -145,7 +145,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 		scope.put(symbol_read_c);
 
 		List<VarDecl> params_read_i = new LinkedList<>();
-		FunDecl read_i = new FunDecl(BaseType.CHAR,"print_i",params_read_i,null);
+		FunDecl read_i = new FunDecl(BaseType.CHAR,"read_i",params_read_i,null);
 		FunDeclSymbol symbol_read_i = new FunDeclSymbol(scope,read_i);
 		scope.put(symbol_read_i);
 
