@@ -13,7 +13,7 @@
                   After a successful build you can run your compiler by typing
                      $ java -cp bin Main
 
-		  To clean "bin" simply type
+		  To clean "bin" simply size_of_type
 		     $ ant clean
 		  on the commandline.		     
 		  -->

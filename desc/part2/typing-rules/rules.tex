@@ -66,7 +66,7 @@
 
 % other BinOp
  \begin{mathpar}
-\inferrule*[left={BinOp(Op=NE,EQ)}]{\Gamma \vdash e_1 : \textbf{T} \notin \{\textbf{StructType, ArrayType, void}\} \\ \vdash e_2 : \textbf{T}}{\Gamma \vdash e_1\ Op\ e_2 : \textbf{int}}
+\inferrule*[left={BinOp(Op=NE,EQ)}]{\Gamma \vdash e_1 : \textbf{T} \notin \{\textbf{StructType, ast.ArrayType, void}\} \\ \vdash e_2 : \textbf{T}}{\Gamma \vdash e_1\ Op\ e_2 : \textbf{int}}
 \end{mathpar}
 
 
@@ -101,7 +101,7 @@
 
 
 \begin{mathpar}
-\inferrule*[left={TypeCastExpr(array to pointer)}]{\Gamma \vdash e : \textbf{ArrayType}_\textbf{elemType}}{\Gamma \vdash \ (\textbf{*elemType})e : \textbf{PointerType}_\textbf{elemType} }
+\inferrule*[left={TypeCastExpr(array to pointer)}]{\Gamma \vdash e : \textbf{ast.ArrayType}_\textbf{elemType}}{\Gamma \vdash \ (\textbf{*elemType})e : \textbf{PointerType}_\textbf{elemType} }
 \end{mathpar}
 
 \begin{mathpar}
@@ -124,7 +124,7 @@
 
 
 \begin{mathpar}
-\inferrule*[left=Assign]{\Gamma \vdash e_1 : \textbf{T} \notin \{\textbf{void, ArrayType}\} \\ \Gamma \vdash e_2 : \textbf{T}}{\Gamma \vdash e_1 = e_2}
+\inferrule*[left=Assign]{\Gamma \vdash e_1 : \textbf{T} \notin \{\textbf{void, ast.ArrayType}\} \\ \Gamma \vdash e_2 : \textbf{T}}{\Gamma \vdash e_1 = e_2}
 \end{mathpar}
 
 \begin{mathpar}

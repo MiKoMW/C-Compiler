@@ -15,3 +15,28 @@ c语言 短路 or| 优先级
 
 In both cases (global or local), it is illegal to declare twice the same identifiers in the same current block (note that this means it is illegal to declare a variable with the same name as a procedure at the global level).
 
+Op 需要是一个node吗？
+
+final 有啥用？为了保险？
+
+ArrayType 没样例啊。
+
+为啥要return null啊？ 直接 void多好？
+
+visitArrayAccessExpr 没有样例
+
+visitFieldAccessExpr 没有样例
+
+expect return null Token
+
+StrLateral 不见了？
+
+Array 怎么处理啊？
+
+ "-" exp 这鸡儿算啥？
+
+
+// 用链接会var declear 吗？
+public Void visitArrayAccessExpr(ArrayAccessExpr arrayAccessExpr){
+
+structacces如何检查.

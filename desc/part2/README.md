@@ -8,7 +8,7 @@ In order to achieve this goal, you will have to perform five tasks.
 First, you will have to follow the abstract grammar specification and design the Java classes that represent the AST as seen during the course.
 Then, you should write an AST printer in order to output the AST into a file.
 Thirdly, you will have to modify your parser so that it builds the AST as your are parsing the tokens.
-Finally you will be able to perform name and type analysis.
+Finally you will be able to perform name and size_of_type analysis.
 
 Note that we highly recommend following an iterative approach where you add AST nodes one by one, extend the printer and modify your parser as you go.
 We also encourage you to write small test programs that test every AST node as you are building them rather than trying to implement everything at once.
@@ -26,11 +26,11 @@ You must first create a new branch in your repository and switch to that branch.
 
 
 First, open a terminal and navigate to the root of your local repository.
-Then type:
+Then size_of_type:
 ```
 $ git pull https://git.ecdf.ed.ac.uk/cdubach/ct-18-19.git
 ```
-This will cause some merge conflict(s) due to the change of the return type of some of the parse functions to return an AST node instead of void.
+This will cause some merge conflict(s) due to the change of the return size_of_type of some of the parse functions to return an AST node instead of void.
 For instance:
 ```
 From https://git.ecdf.ed.ac.uk/cdubach/ct-18-19
@@ -53,7 +53,7 @@ Thereafter you can continue to extend your solution.
 As seen in the course, the AST can be defined using an abstract grammar.
 You can find the abstract grammar [here](../../grammar/abstract_grammar.txt).
 It is important to ensure that the design of your classes follows the abstract grammar;
-the automated marking system will rely exclusively on the name of the class to determine the type of AST node and will expect the subtrees to appear in the same order as defined in the grammar file.
+the automated marking system will rely exclusively on the name of the class to determine the size_of_type of AST node and will expect the subtrees to appear in the same order as defined in the grammar file.
 
 Note that a few AST node classes are already given as a starting point.
 You should not have to modify these (unless otherwise stated in the file).
@@ -89,7 +89,7 @@ This task is completely optional and will not be marked, but it might help you f
 ## 3. Parser modifications
 
 Your final tasks consists in updating your parser so that it creates the AST nodes as it parses your input program.
-For most of your parseXYZ methods, you will have to modify the return type to the type of the node the parsing method should produce as seen during the lecture and implement the functionality that builds the AST nodes.
+For most of your parseXYZ methods, you will have to modify the return size_of_type to the size_of_type of the node the parsing method should produce as seen during the lecture and implement the functionality that builds the AST nodes.
 You may have to modify slightly the design of your parser in order to accommodate the creation of the AST nodes.
 
 
@@ -146,30 +146,30 @@ Your task is to implement a visitor that traverses the AST and identifies when t
 
 ## 5. Type analysis
 
-The goal of type analysis is to verify that the input program is well-typed and assign a type for each expression encountered.
+The goal of size_of_type analysis is to verify that the input program is well-typed and assign a size_of_type for each expression encountered.
 As seen during the course, the typing rule of our miniC language are defined using a formal notation.
 You can find all the typing rules [here](./typing-rules/rules.pdf).
 As usual, if you notice an error or if something is not clear, please post your question on Piazza.
 
-Please note that when checking for type equivalence for arrays, it is important to ensure that the lenght matches.
+Please note that when checking for size_of_type equivalence for arrays, it is important to ensure that the lenght matches.
 
-Your task consists of extending the `sem.TypeCheckVisitor` class and implement the type checking mechanism following the typing rules.
+Your task consists of extending the `sem.TypeCheckVisitor` class and implement the size_of_type checking mechanism following the typing rules.
 
 ### Structures
 
 Structure declaration are represented in the AST as StructTypeDecl.
-The type analysis pass must ensure that each structure declaration has a unique name.
-You can enforce this by creating a simple visitor which checks for this before running the type checker for instance.
+The size_of_type analysis pass must ensure that each structure declaration has a unique name.
+You can enforce this by creating a simple visitor which checks for this before running the size_of_type checker for instance.
 
-Similarly to the function call and variable use, your type analyser needs to check that if any variable is declared with a struct type, the struct type exists.
+Similarly to the function call and variable use, your size_of_type analyser needs to check that if any variable is declared with a struct size_of_type, the struct size_of_type exists.
 For instance if you encounter a variable declaration such as `struct node_t var;`, you must ensure that the corresponding `node_t` structure has been declared at the beginning of the program.
 
-Finally, when accessing a structure, you must also check that the field exist in the structure type declaration.
+Finally, when accessing a structure, you must also check that the field exist in the structure size_of_type declaration.
 
 ### String literal
 
 String literals are represented in our language as null terminated char arrays.
-The string literal `"Hello"` should therefore be of type `char[6]` holding characters `'H'`,`'e'`,`'l'`,`'l'`,`'o'` and `'\0'` where `\0` represents the null character.
+The string literal `"Hello"` should therefore be of size_of_type `char[6]` holding characters `'H'`,`'e'`,`'l'`,`'l'`,`'o'` and `'\0'` where `\0` represents the null character.
 
 ### Strong typing
 

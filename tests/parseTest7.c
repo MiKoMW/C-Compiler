@@ -21,7 +21,7 @@ return 1;
 
 int test_fun(struct emm a, int b, struct emma cs){
 
-a.b[1] = '1';
+a.b = '1';
 return 1;
 
 }

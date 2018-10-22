@@ -1,14 +1,14 @@
-// The program top AST node (a list of struct type declaration, list of variable declarations, list of FunDecl definition)
+// The program top AST node (a list of struct size_of_type declaration, list of variable declarations, list of FunDecl definition)
 Program    ::= StructTypeDecl* VarDecl* FunDecl*
 
 
 // Types
-Type        ::= BaseType | PointerType | StructType | ArrayType
+Type        ::= BaseType | PointerType | StructType | ast.ArrayType
 
 BaseType    ::= INT | CHAR | VOID
 PointerType ::= Type              // use to represent pointers to other types
-StructType  ::= String            // represent a struct type (the String is the name of the declared struct type)
-ArrayType   ::= Type int          // Type represent the element type, int represents the number of elements (number of elements)
+StructType  ::= String            // represent a struct size_of_type (the String is the name of the declared struct size_of_type)
+ast.ArrayType   ::= Type int          // Type represent the element size_of_type, int represents the number of elements (number of elements)
 
 // Struct declaration
 StructTypeDecl ::= StructType VarDecl*

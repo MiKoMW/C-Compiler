@@ -5,19 +5,19 @@
 # +  one or more
 # |  alternative
 
-type       ::= ("int" | "char" | "void" | structtype) ["*"]
+size_of_type       ::= ("int" | "char" | "void" | structtype) ["*"]
 structtype ::= "struct" IDENT
 structdecl ::= structtype "{" (vardecl)+ "}" ";"    # structure declaration
 program    ::= (include)* (structdecl)* (vardecl)* (fundecl)* EOF
 include    ::= "#include" STRING_LITERAL
-vardecl    ::= type IDENT ";"                       # normal declaration, e.g. int a;
-             | type IDENT "[" INT_LITERAL "]" ";"   # array declaration, e.g. int a[2];
-fundecl    ::= type IDENT "(" params ")" block    # function declaration
-params     ::= [ type IDENT ("," type IDENT)* ]
+vardecl    ::= size_of_type IDENT ";"                       # normal declaration, e.g. int a;
+             | size_of_type IDENT "[" INT_LITERAL "]" ";"   # array declaration, e.g. int a[2];
+fundecl    ::= size_of_type IDENT "(" params ")" block    # function declaration
+params     ::= [ size_of_type IDENT ("," size_of_type IDENT)* ]
 block      ::= "{" (vardecl)* (stmt)* "}"
-typecast     ::= "(" type ")" exp                 # type casting
+typecast     ::= "(" size_of_type ")" exp                 # size_of_type casting
 valueat      ::= "*" exp                          # Value at operator (pointer indirection)
-sizeof       ::= "sizeof" "(" type ")"            # size of type
+sizeof       ::= "sizeof" "(" size_of_type ")"            # size of size_of_type
 funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
 
 stmt       ::= block
@@ -55,8 +55,8 @@ exp2 :: = ...
 
 
 exp1 = | - post
-       | (type ) post
-       | sizeof ( type )
+       | (size_of_type ) post
+       | sizeof ( size_of_type )
        | * exp
 
 

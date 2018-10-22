@@ -12,15 +12,15 @@ include    ::= "#include" STRING_LITERAL
 
 structdecl ::= structtype "{" (vardecl)+ "}" ";"    # structure declaration
 
-vardecl    ::= type IDENT ";"                       # normal declaration, e.g. int a;
-             | type IDENT "[" INT_LITERAL "]" ";"   # array declaration, e.g. int a[2];
+vardecl    ::= size_of_type IDENT ";"                       # normal declaration, e.g. int a;
+             | size_of_type IDENT "[" INT_LITERAL "]" ";"   # array declaration, e.g. int a[2];
 
-fundecl    ::= type IDENT "(" params ")" block    # function declaration
+fundecl    ::= size_of_type IDENT "(" params ")" block    # function declaration
 
-type       ::= ("int" | "char" | "void" | structtype) ["*"]
+size_of_type       ::= ("int" | "char" | "void" | structtype) ["*"]
 structtype ::= "struct" IDENT
 
-params     ::= [ type IDENT ("," type IDENT)* ]
+params     ::= [ size_of_type IDENT ("," size_of_type IDENT)* ]
 
 stmt       ::= block
              | "while" "(" exp ")" stmt              # while loop
@@ -43,7 +43,7 @@ funcall      ::= IDENT "(" [ exp ("," exp)* ] ")"
 arrayaccess  ::= exp "[" exp "]"                  # array access
 fieldaccess  ::= exp "." IDENT                    # structure field member access
 valueat      ::= "*" exp                          # Value at operator (pointer indirection)
-sizeof       ::= "sizeof" "(" type ")"            # size of type
-typecast     ::= "(" type ")" exp                 # type casting
+sizeof       ::= "sizeof" "(" size_of_type ")"            # size of size_of_type
+typecast     ::= "(" size_of_type ")" exp                 # size_of_type casting
 
 

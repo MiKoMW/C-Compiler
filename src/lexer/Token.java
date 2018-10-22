@@ -22,7 +22,7 @@ public class Token {
         LPAR,  // '(' // left parenthesis
         RPAR,  // ')' // right parenthesis
         LSBR,  // '[' // left square brace
-        RSBR,  // ']' // left square brace
+        RSBR,  // ']' // right square brace
         SC,    // ';' // semicolon
         COMMA, // ','
 

@@ -62,7 +62,7 @@ int main(struct emm * a, int a, int * b, struct emm a){
 
   // 1(1);
 
-   emm.at[(11+122)[1]];
+   emmat[10+2];
 
 //   emmm.1;
 
@@ -73,8 +73,8 @@ int main(struct emm * a, int a, int * b, struct emm a){
 
   (int) 1;
 
-  1[1][1];
-  1.a.a.a.a;
+  1[1];
+  1.a;
 
 }
 

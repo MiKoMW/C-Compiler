@@ -91,7 +91,7 @@ You should grant the following users *Reporter* access:
   * Christophe Dubach (username: cdubach)
   * Federico Pizzuti (username: s1580329)
 
-Next, you will have to clone the forked repository to your local machine. In order to clone the repository you should launch a terminal and type:
+Next, you will have to clone the forked repository to your local machine. In order to clone the repository you should launch a terminal and size_of_type:
 
 ```
 $ git clone https://sXXXXXXX@git.ecdf.ed.ac.uk/sXXXXXXX/ct-18-19.git
@@ -108,7 +108,7 @@ You can choose to use a development environment for your project. DICE machines 
 
 Alternatively, you can use Emacs, vim, or your favourite text editor. Choose whichever you are confident with.
 
-We reccommend using IntelliJ Idea. To launch it on dice machines, open a terminal and type
+We reccommend using IntelliJ Idea. To launch it on dice machines, open a terminal and size_of_type
 
 ```
 idea18-ce 
@@ -140,7 +140,7 @@ $ java -cp bin Main
 ```
 The parameter `cp` instructs the Java Runtime to include the local directory `bin` when it looks for class files.
 
-You can find a series of tests in the `tests` folder. To run the lexer on one of them, you can type:
+You can find a series of tests in the `tests` folder. To run the lexer on one of them, you can size_of_type:
 
 ```
 $ java -cp bin Main -lexer tests/fibonacci.c dummy.out

@@ -54,9 +54,9 @@ You should make sure that the resulting grammar is non-ambiguous, eliminate left
 | 1             | \[\]          | Array subscripting |
 | 1             | .             | Structure member access |
 | 2             | -             | Unary minus |
-| 2             | (type)        | Type cast |
+| 2             | (size_of_type)        | Type cast |
 | 2             | *             | Pointer indirection |
-| 2             | sizeof(type)  | Size of type|
+| 2             | sizeof(size_of_type)  | Size of size_of_type|
 | 3             | * / %         | Multiplication, division, remainder |
 | 4             | + -           | Addition, substraction |
 | 5             | < <= > >=     | Relational operators |
