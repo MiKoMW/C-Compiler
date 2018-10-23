@@ -287,7 +287,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 	}
 
 	public Void visitValueAtExpr(ValueAtExpr valueAtExpr){
-		valueAtExpr.accept(this);
+		valueAtExpr.expr.accept(this);
 		return null;
 	}
 

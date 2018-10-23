@@ -274,11 +274,20 @@ public class Parser {
         if(accept(type_First)){
             Type type = parseType();
             Token cur = expect(TokenClass.IDENTIFIER);
+            if(cur == null){
+                error(TokenClass.IDENTIFIER);
+                return null;
+            }
+
             varDecls.add(new VarDecl(type,cur.data));
             while (accept(TokenClass.COMMA)) {
                 nextToken();
                 type = parseType();
                 cur = expect(TokenClass.IDENTIFIER);
+                if(cur == null){
+                    error(TokenClass.IDENTIFIER);
+                    return null;
+                }
                 varDecls.add(new VarDecl(type,cur.data));
 
             }
