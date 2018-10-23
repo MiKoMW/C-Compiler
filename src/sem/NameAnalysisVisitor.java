@@ -140,7 +140,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 		scope.put(symbol_print_c);
 
 		List<VarDecl> params_read_c = new LinkedList<>();
-		FunDecl read_c = new FunDecl(BaseType.CHAR,"print_c",params_read_c,null);
+		FunDecl read_c = new FunDecl(BaseType.CHAR,"read_c",params_read_c,null);
 		FunDeclSymbol symbol_read_c = new FunDeclSymbol(scope,read_c);
 		scope.put(symbol_read_c);
 
@@ -174,6 +174,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 	@Override
 	public Void visitVarDecl(VarDecl vd) {
 		// To be completed...
+		vd.type.accept(this);
 
 		if(scope.lookupCurrent(vd.varName) != null){
 			error("Var " + vd.varName + " was declared twice.");

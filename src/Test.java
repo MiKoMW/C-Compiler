@@ -1,37 +1,12 @@
-import lexer.Scanner;
+import ast.BaseType;
 import lexer.Token;
-import lexer.Tokeniser;
-import parser.Parser;
-
-import java.io.File;
 
 public class Test
 {
     public static void main(String[] args){
 
-        File fl = new File("test.in");
 
-
-        try {
-
-            Scanner scanner = new Scanner(fl);
-
-            Tokeniser tok = new Tokeniser(scanner);
-            Parser ps = new Parser(tok);
-
-
-
-            error();
-
-        } catch (Exception e){
-            System.out.println(e.toString());
-        }
-
-        Token.TokenClass[] Type_First = new Token.TokenClass[]{
-                Token.TokenClass.INT, Token.TokenClass.CHAR, Token.TokenClass.VOID, Token.TokenClass.STRUCT
-        };
-
-
+        System.out.println(BaseType.VOID );
 
 
 

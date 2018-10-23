@@ -42,4 +42,9 @@ public class Scope {
 	public void put(Symbol sym) {
 		symbolTable.put(sym.name, sym);
 	}
+
+	public void put(String string,Symbol symbol){
+		symbolTable.put(string, symbol);
+
+	}
 }

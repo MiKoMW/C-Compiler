@@ -43,22 +43,17 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		Type returnType = null;
 		for(Stmt stmt : b.stmts){
 
-			Type temp = stmt.accept(this);
-			if (stmt instanceof Return) {
-				if ((returnType != null) && (temp != null)) {
-					if (!checkType(returnType, temp)) {
-						error("Return Type in Block does not match");
-					}
-				}
-				if (returnType == null) {
-					returnType = temp;
-				}
+			if(stmt instanceof Return) {
+				((Return) stmt).accept(this);
+			}else {
+				stmt.accept(this);
+			}
 
 			}
-		}
-
-		return returnType;
+			return null;
 	}
+
+
 
 	@Override
 	public Type visitFunDecl(FunDecl p) {
@@ -74,19 +69,6 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		Type block_type = p.block.accept(this);
 
 		funDeclReturnType.pop();
-		if(block_type == null){
-			if (p.type == BaseType.VOID){
-				return BaseType.VOID;
-			}else{
-				error("Return type Does not Match!");
-				return null;
-			}
-		}
-
-		if(!checkType(block_type,p.type)){
-			error("Return type Does not Match!");
-			return null;
-		}
 
 		//思考一波？
 		return block_type;
@@ -95,12 +77,12 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	@Override
 	public Type visitProgram(Program p) {
 		// To be completed...
-
 		for(StructTypeDecl structTypeDecl : p.structTypeDecls){
 			structTypeDecl.accept(this);
 		}
 
 		for(VarDecl varDecl : p.varDecls){
+
 			varDecl.accept(this);
 		}
 
@@ -122,7 +104,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		FunDecl print_c = new FunDecl(BaseType.VOID,"print_c",params_print_c,null);
 
 		List<VarDecl> params_read_c = new LinkedList<>();
-		FunDecl read_c = new FunDecl(BaseType.CHAR,"print_c",params_read_c,null);
+		FunDecl read_c = new FunDecl(BaseType.CHAR,"read_c",params_read_c,null);
 
 		List<VarDecl> params_read_i = new LinkedList<>();
 		FunDecl read_i = new FunDecl(BaseType.CHAR,"print_i",params_read_i,null);
@@ -219,7 +201,10 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			Type arg_call = v.params.get(con).accept(this);
 			Type arg_decl = funDecl.params.get(con).accept(this);
 			//有潜在问题。
-			if(checkType(arg_call,arg_decl)) {
+			if(!checkType(arg_call,arg_decl)) {
+				//System.out.println(arg_call);
+				//System.out.println(arg_decl);
+
 				error("Function call arg size_of_type does not match " + v.fun_name + "!");
 				return null;
 			}
@@ -479,6 +464,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		}
 
 		Type return_type = v.expr.accept(this);
+
 
 		if(checkType(return_type,funcType)){
 			return return_type;
