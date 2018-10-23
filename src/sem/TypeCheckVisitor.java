@@ -132,16 +132,23 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		}else if(vd.type instanceof PointerType){
 			// To check if the typt pointer points to is valid.
 			Type pointerType = ((PointerType) vd.type).point_to_type.accept(this);
+
 			if(pointerType == BaseType.VOID){
 				error("Void pointer " + vd.varName + " can't be declared.");
 				return null;
 			}
+//			if(pointerType instanceof StructType){
+//				((StructType) pointerType).accept(this);
+//			}
+
 		} else if(vd.type instanceof StructType){
 			String struct_name = ((StructType) vd.type).struct_Name;
 			if(!structMap.keySet().contains(struct_name)){
 				error("Undeclared struct name " + struct_name + "!");
 				return null;
 			}
+		} else if (vd.type instanceof ArrayType){
+			Type arr_type = ((ArrayType) vd.type).type.accept(this);
 		}
 
 		return vd.type;
