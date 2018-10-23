@@ -121,6 +121,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		p.funDecls.add(read_i);
 		p.funDecls.add(mcmalloc);
 
+
 		return null;
 	}
 
