@@ -107,7 +107,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		FunDecl read_c = new FunDecl(BaseType.CHAR,"read_c",params_read_c,null);
 
 		List<VarDecl> params_read_i = new LinkedList<>();
-		FunDecl read_i = new FunDecl(BaseType.CHAR,"print_i",params_read_i,null);
+		FunDecl read_i = new FunDecl(BaseType.INT,"read_i",params_read_i,null);
 
 		List<VarDecl> params_mcmalloc = new LinkedList<>();
 		params_mcmalloc.add(new VarDecl(BaseType.INT,"size"));
@@ -136,6 +136,12 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				error("Void pointer " + vd.varName + " can't be declared.");
 				return null;
 			}
+		} else if(vd.type instanceof StructType){
+			String struct_name = ((StructType) vd.type).struct_Name;
+			if(!structMap.keySet().contains(struct_name)){
+				error("Undeclared struct name " + struct_name + "!");
+				return null;
+			}
 		}
 
 		return vd.type;
@@ -150,7 +156,9 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			return null;
 		}
 
-		return v.vd.type;
+		v.type = v.vd.accept(this);
+
+		return v.type;
 	}
 
 	public Type visitPointerType(PointerType pointerType){
@@ -198,20 +206,28 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		}
 
 		for(int con = 0; con < v.params.size(); con++) {
-			Type arg_call = v.params.get(con).accept(this);
+			Type arg_call  = v.params.get(con).accept(this);
+
 			Type arg_decl = funDecl.params.get(con).accept(this);
+
+			if(arg_call instanceof StructType){
+				//System.out.println(":)");
+				arg_call.accept(this);
+			}
+
 			//有潜在问题。
 			if(!checkType(arg_call,arg_decl)) {
 				//System.out.println(arg_call);
 				//System.out.println(arg_decl);
 
-				error("Function call arg size_of_type does not match " + v.fun_name + "!");
+				error("Function call arg type does not match " + v.fun_name + "!");
 				return null;
 			}
 
 		}
 
 		v.type = funDecl.type;
+		//System.out.println(" : ) " + v.type);
 		return v.type;
 
 	}
@@ -441,6 +457,9 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		Type rhs_type = v.rhs.accept(this);
 
 		if (!checkType(lhs_type,rhs_type)){
+			//System.out.println(v.lhs.type);
+			//System.out.println(v.rhs);
+
 			error("Assign left hand side and right hand side types do not match!");
 			return null;
 		}

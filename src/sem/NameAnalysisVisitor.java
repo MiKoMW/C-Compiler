@@ -145,7 +145,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 		scope.put(symbol_read_c);
 
 		List<VarDecl> params_read_i = new LinkedList<>();
-		FunDecl read_i = new FunDecl(BaseType.CHAR,"read_i",params_read_i,null);
+		FunDecl read_i = new FunDecl(BaseType.INT,"read_i",params_read_i,null);
 		FunDeclSymbol symbol_read_i = new FunDeclSymbol(scope,read_i);
 		scope.put(symbol_read_i);
 
@@ -253,8 +253,12 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 
 	// Op doesn't need to be visited.
 	public Void visitBinOp(BinOp binOp){
-		binOp.first.accept(this);
-		binOp.second.accept(this);
+		//if(binOp.first != null){
+			binOp.first.accept(this);
+		//}
+		//if(binOp.second!= null) {
+			binOp.second.accept(this);
+		//}
 		return null;
 	}
 

@@ -459,9 +459,9 @@ public class Parser {
         if(accept(TokenClass.MINUS)){
             nextToken();
             Expr expr = parseTerm();
-            if(!(expr instanceof IntLiteral)){
-                return null;
-            }
+            //if(!(expr instanceof IntLiteral)){
+            //    return null;
+            //}
 
             return new BinOp(new IntLiteral(0),Op.SUB,expr);
         }
