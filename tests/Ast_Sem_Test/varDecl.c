@@ -15,6 +15,11 @@ int b;
 char c;
 int d;
 
+int test(int a){
+    return 1;
+}
+
+
 int main(){
 
     struct a a;
@@ -22,6 +27,16 @@ int main(){
     a;
     d;
 
-    f;
+    //f;
+
+    //apple();
+    //b();
+
+
+    //test('a');
+
+}
+
+struct a test1(){
 
 }

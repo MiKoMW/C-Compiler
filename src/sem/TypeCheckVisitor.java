@@ -63,6 +63,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		for(VarDecl varDecl : p.params){
 			varDecl.accept(this);
 		}
+		p.type.accept(this);
 
 		funDeclReturnType.push(p.type);
 
@@ -209,7 +210,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		FunDecl funDecl = v.funDecl;
 
 		if(funDecl == null){
-			error("Undeclared Function " + v.fun_name + "!");
+			error("Name Analysis Undeclared Function " + v.fun_name + "!");
 			return null;
 		}
 
