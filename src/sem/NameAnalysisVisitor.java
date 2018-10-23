@@ -198,6 +198,13 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 			return null;
 		}
 
+		//System.out.println(symbol);
+
+		if(!(symbol instanceof VarSymbol)){
+			error("Wrong var access.");
+			return null;
+		}
+
 		v.vd = ((VarSymbol) symbol).varDecl;
 
 		return null;
