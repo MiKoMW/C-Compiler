@@ -33,6 +33,8 @@ public class Comp_Tester {
             File file = new File(pathname);
             String[] ans = file.list();
             for(String st : ans){
+                System.out.println("");
+
                 if(st.contains("invalid")){
                     System.out.println("Test case: " + st);
                 }else {
@@ -92,7 +94,9 @@ public class Comp_Tester {
         }  else if (mode == Mode.AST) {
 
             Parser parser = new Parser(tokeniser);
+
             Program programAst = parser.parse();
+
             if (parser.getErrorCount() == 0) {
                 System.out.println("Parsing: pass");
                 System.out.println("Printing out AST:");
