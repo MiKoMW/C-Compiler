@@ -19,4 +19,9 @@ int main(){
 
     struct a a;
     //a.b = 1;
+    a;
+    d;
+
+    f;
+
 }

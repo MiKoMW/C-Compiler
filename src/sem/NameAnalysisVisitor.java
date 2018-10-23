@@ -194,7 +194,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 		Symbol symbol = scope.lookup(v.name);
 
 		if(symbol == null){
-			error("Var " + v.name + " was not declared.");
+			error("Name Analysis Var " + v.name + " was not declared.");
 			return null;
 		}
 

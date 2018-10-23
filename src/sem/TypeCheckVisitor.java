@@ -157,6 +157,12 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	@Override
 	public Type visitVarExpr(VarExpr v) {
 		// To be completed...
+
+		if(v.vd == null){
+			error("Undeclared var " + v.name + "!");
+			return null;
+		}
+
 		v.vd.type.accept(this);
 		if(v.vd == null){
 			error("Undeclared var " + v.name + "!");
