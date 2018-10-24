@@ -63,9 +63,9 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		for(VarDecl varDecl : p.params){
 			varDecl.accept(this);
 		}
-		p.type.accept(this);
+		p.fun_type.accept(this);
 
-		funDeclReturnType.push(p.type);
+		funDeclReturnType.push(p.fun_type);
 
 		Type block_type = p.block.accept(this);
 
@@ -128,12 +128,12 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	@Override
 	public Type visitVarDecl(VarDecl vd) {
 		// To be completed...
-		if(vd.type == BaseType.VOID){
+		if(vd.var_type == BaseType.VOID){
 			error("Void var " + vd.varName + " can't be declared.");
 			return null;
-		}else if(vd.type instanceof PointerType){
+		}else if(vd.var_type instanceof PointerType){
 			// To check if the typt pointer points to is valid.
-			Type pointerType = ((PointerType) vd.type).point_to_type.accept(this);
+			Type pointerType = ((PointerType) vd.var_type).point_to_type.accept(this);
 
 			if(pointerType == BaseType.VOID){
 				error("Void pointer " + vd.varName + " can't be declared.");
@@ -143,17 +143,17 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 //				((StructType) pointerType).accept(this);
 //			}
 
-		} else if(vd.type instanceof StructType){
-			String struct_name = ((StructType) vd.type).struct_Name;
+		} else if(vd.var_type instanceof StructType){
+			String struct_name = ((StructType) vd.var_type).struct_Name;
 			if(!structMap.keySet().contains(struct_name)){
 				error("Undeclared struct name " + struct_name + "!");
 				return null;
 			}
-		} else if (vd.type instanceof ArrayType){
-			Type arr_type = ((ArrayType) vd.type).type.accept(this);
+		} else if (vd.var_type instanceof ArrayType){
+			Type arr_type = ((ArrayType) vd.var_type).elem_type.accept(this);
 		}
 
-		return vd.type;
+		return vd.var_type;
 	}
 
 	@Override
@@ -165,7 +165,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			return null;
 		}
 
-		v.vd.type.accept(this);
+		v.vd.var_type.accept(this);
 		if(v.vd == null){
 			error("Undeclared var " + v.name + "!");
 			return null;
@@ -190,7 +190,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	}
 
 	public Type visitArrayType(ArrayType v){
-		v.type.accept(this);
+		v.elem_type.accept(this);
 		return v;
 	}
 
@@ -235,14 +235,14 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				//System.out.println(arg_call);
 				//System.out.println(arg_decl);
 
-				error("Function call arg type does not match " + v.fun_name + "!");
+				error("Function call arg elem_type does not match " + v.fun_name + "!");
 				return null;
 			}
 
 		}
 
-		v.type = funDecl.type;
-		//System.out.println(" : ) " + v.type);
+		v.type = funDecl.fun_type;
+		//System.out.println(" : ) " + v.elem_type);
 		return v.type;
 
 	}
@@ -258,8 +258,8 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				// 有问题吗？
 				return false;
 			}
-			Type t1 = ((ArrayType) type1).type.accept(this);
-			Type t2 = ((ArrayType) type2).type.accept(this);
+			Type t1 = ((ArrayType) type1).elem_type.accept(this);
+			Type t2 = ((ArrayType) type2).elem_type.accept(this);
 			return checkType(t1,t2);
 		}
 
@@ -324,7 +324,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 		Type resultType;
 		if(type instanceof ArrayType){
-			resultType = ((ArrayType) type).type.accept(this);
+			resultType = ((ArrayType) type).elem_type.accept(this);
 		} else {
 			resultType = ((PointerType) type).point_to_type.accept(this);
 		}
@@ -360,7 +360,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		for(VarDecl varDecl : thisStructDecl.varDecls){
 			if (varDecl.varName.equals(v.field)){
 				isFiled = true;
-				resultType = varDecl.type;
+				resultType = varDecl.var_type;
 			}
 		}
 
@@ -472,7 +472,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		Type rhs_type = v.rhs.accept(this);
 
 		if (!checkType(lhs_type,rhs_type)){
-			//System.out.println(v.lhs.type);
+			//System.out.println(v.lhs.elem_type);
 			//System.out.println(v.rhs);
 
 			error("Assign left hand side and right hand side types do not match!");

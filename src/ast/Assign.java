@@ -15,4 +15,3 @@ public class Assign extends Stmt{
         return v.visitAssign(this);
     }
 }
-

@@ -34,7 +34,7 @@ public class ASTPrinter implements ASTVisitor<Void> {
     @Override
     public Void visitFunDecl(FunDecl fd) {
         writer.print("FunDecl(");
-        fd.type.accept(this);
+        fd.fun_type.accept(this);
         writer.print(","+fd.name+",");
         for (VarDecl vd : fd.params) {
             vd.accept(this);
@@ -72,7 +72,7 @@ public class ASTPrinter implements ASTVisitor<Void> {
     @Override
     public Void visitVarDecl(VarDecl vd){
         writer.print("VarDecl(");
-        vd.type.accept(this);
+        vd.var_type.accept(this);
         writer.print(","+vd.varName);
         writer.print(")");
         return null;
@@ -127,7 +127,7 @@ public class ASTPrinter implements ASTVisitor<Void> {
     public Void visitArrayType(ArrayType at){
 
         writer.print("ArrayType(");
-        at.type.accept(this);
+        at.elem_type.accept(this);
         writer.print(",");
         writer.print(at.size);
         writer.print(")");

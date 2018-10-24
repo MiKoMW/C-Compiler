@@ -174,7 +174,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 	@Override
 	public Void visitVarDecl(VarDecl vd) {
 		// To be completed...
-		vd.type.accept(this);
+		vd.var_type.accept(this);
 
 		if(scope.lookupCurrent(vd.varName) != null){
 			error("Var " + vd.varName + " was declared twice.");
