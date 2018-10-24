@@ -2,6 +2,7 @@
 
 struct apple{
     int iphone;
+    int temp[10];
 };
 
 struct banana{
@@ -12,7 +13,10 @@ struct banana{
 
 int main(){
     struct banana banana;
+    struct apple app;
     int a;
     a = banana.iphone.iphone;
+    //app.temp = "asd";
+    //"asd" == "add";
     //a = banana.orange;
 }

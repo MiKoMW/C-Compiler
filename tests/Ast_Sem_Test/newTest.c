@@ -1,13 +1,6 @@
-#include ">_<"
-
-
+#include "＼（＾▽＾）／　"
 
 int main(){
-
-
-  char temp[10];
-  //temp = "dsada";
-
-
-
+    void * a;
+    void b[1];
 }
