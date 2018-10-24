@@ -586,8 +586,8 @@ public class Parser {
                 expr1 = new BinOp(expr1,Op.EQ,expr2);
             }else if (accept(TokenClass.NE)){
                 nextToken();
-                 expr2 = parseExp3();
-                 expr1 = new BinOp(expr1,Op.NE,expr2);
+                expr2 = parseExp3();
+                expr1 = new BinOp(expr1,Op.NE,expr2);
             }
         }
         return expr1;
@@ -644,9 +644,6 @@ public class Parser {
         return ans;
 
     }
-
-
-
 
     private Stmt parseStmt(){
 
