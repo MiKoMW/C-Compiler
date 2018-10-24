@@ -543,7 +543,7 @@ public class Parser {
         }else if(accept(TokenClass.MINUS)) {
             nextToken();
             expr2 = parseExp1();
-            expr1 = new BinOp(expr1,Op.ADD,expr2);
+            expr1 = new BinOp(expr1,Op.SUB,expr2);
         }
         }
         return expr1;
