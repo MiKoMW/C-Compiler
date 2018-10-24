@@ -8,6 +8,7 @@ int main(){
 
     struct apple *orange;
     struct apple *banana;
+    //int[1] pps;
   //  int i;
   //  char c;
   //  i=(int)c;
