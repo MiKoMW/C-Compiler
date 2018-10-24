@@ -7,7 +7,10 @@ struct apple{
 };
 
 char a;
-
+/*
+int a(){
+}
+*/
 int main(){
 }
 

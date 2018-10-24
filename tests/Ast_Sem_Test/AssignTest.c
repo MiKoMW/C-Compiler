@@ -22,6 +22,9 @@ int main(){
     int * ppp;
     int b[10];
     int c[10];
+
+
+
     a = 1;
     //a = 'c';
 
@@ -37,6 +40,7 @@ int main(){
     //a1 = a;
 
 //        apt = pt;
+
 
     apt = app;
     return 0;
