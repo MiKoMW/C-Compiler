@@ -9,9 +9,9 @@ import java.util.Stack;
 
 public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
-	HashMap<String, StructTypeDecl> structMap = new HashMap<>();
+	private HashMap<String, StructTypeDecl> structMap = new HashMap<>();
 
-	Stack<Type> funDeclReturnType = new Stack<>();
+	private Stack<Type> funDeclReturnType = new Stack<>();
 
 	@Override
 	public Type visitBaseType(BaseType bt) {
@@ -40,7 +40,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		for(VarDecl varDecl : b.vardelcs){
 			varDecl.accept(this);
 		}
-		Type returnType = null;
+		//Type returnType = null;
 		for(Stmt stmt : b.stmts){
 
 			if(stmt instanceof Return) {
@@ -49,7 +49,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				stmt.accept(this);
 			}
 
-			}
+		}
 			return null;
 	}
 
@@ -67,12 +67,13 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 		funDeclReturnType.push(p.fun_type);
 
-		Type block_type = p.block.accept(this);
+		p.block.accept(this);
 
 		funDeclReturnType.pop();
 
-		//思考一波？
-		return block_type;
+		//思考一波？ emm 没啥毛病！
+		// Statement does not have type. But I'd like to keep it to see it is useful or not later.
+		return p.fun_type;
 	}
 
 	@Override
@@ -87,32 +88,29 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			varDecl.accept(this);
 		}
 
-		for (FunDecl funDecl : p.funDecls){
-			funDecl.accept(this);
-		}
-
 		//意义不明？
+		// Seems useless!! But I wanna waste some memory!
 		List<VarDecl> params_print_s = new LinkedList<>();
 		params_print_s.add(new VarDecl(new PointerType(BaseType.CHAR),"s"));
-		FunDecl print_s = new FunDecl(BaseType.VOID,"print_s",params_print_s,null);
+		FunDecl print_s = new FunDecl(BaseType.VOID,"print_s",params_print_s,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		List<VarDecl> params_print_i = new LinkedList<>();
 		params_print_i.add(new VarDecl(BaseType.INT,"i"));
-		FunDecl print_i = new FunDecl(BaseType.VOID,"print_i",params_print_i,null);
+		FunDecl print_i = new FunDecl(BaseType.VOID,"print_i",params_print_i,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		List<VarDecl> params_print_c = new LinkedList<>();
 		params_print_c.add(new VarDecl(BaseType.CHAR,"c"));
-		FunDecl print_c = new FunDecl(BaseType.VOID,"print_c",params_print_c,null);
+		FunDecl print_c = new FunDecl(BaseType.VOID,"print_c",params_print_c,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		List<VarDecl> params_read_c = new LinkedList<>();
-		FunDecl read_c = new FunDecl(BaseType.CHAR,"read_c",params_read_c,null);
+		FunDecl read_c = new FunDecl(BaseType.CHAR,"read_c",params_read_c,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		List<VarDecl> params_read_i = new LinkedList<>();
-		FunDecl read_i = new FunDecl(BaseType.INT,"read_i",params_read_i,null);
+		FunDecl read_i = new FunDecl(BaseType.INT,"read_i",params_read_i,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		List<VarDecl> params_mcmalloc = new LinkedList<>();
 		params_mcmalloc.add(new VarDecl(BaseType.INT,"size"));
-		FunDecl mcmalloc = new FunDecl(new PointerType(BaseType.VOID),"mcmalloc",params_mcmalloc,null);
+		FunDecl mcmalloc = new FunDecl(new PointerType(BaseType.VOID),"mcmalloc",params_mcmalloc,new Block(new LinkedList<>(),new LinkedList<>()));
 
 		p.funDecls.add(print_s);
 		p.funDecls.add(print_i);
@@ -121,6 +119,9 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		p.funDecls.add(read_i);
 		p.funDecls.add(mcmalloc);
 
+		for (FunDecl funDecl : p.funDecls){
+			funDecl.accept(this);
+		}
 
 		return null;
 	}
@@ -135,10 +136,10 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			// To check if the typt pointer points to is valid.
 			Type pointerType = ((PointerType) vd.var_type).point_to_type.accept(this);
 
-			if(pointerType == BaseType.VOID){
-				error("Void pointer " + vd.varName + " can't be declared.");
-				return null;
-			}
+			//if(pointerType == BaseType.VOID){
+			//	error("Void pointer " + vd.varName + " can't be declared.");
+			//	return null;
+			//}
 //			if(pointerType instanceof StructType){
 //				((StructType) pointerType).accept(this);
 //			}
@@ -166,6 +167,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		}
 
 		v.vd.var_type.accept(this);
+
 		if(v.vd == null){
 			error("Undeclared var " + v.name + "!");
 			return null;
@@ -247,7 +249,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 	}
 
-	public boolean checkType(Type type1, Type type2){
+	private boolean checkType(Type type1, Type type2){
 
 		if (type1 instanceof BaseType && type2 instanceof BaseType){
 			return type1 == type2;
@@ -295,7 +297,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				v.type = BaseType.INT;
 				return BaseType.INT;
 			}else{
-				error("Type doesnot match!");
+				error("Type doesn't match!");
 				return null;
 			}
 		}else {
@@ -304,7 +306,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 				v.type = BaseType.INT;
 				return v.type;
 			} else {
-				error("Invalid size_of_type for arithmetic operation!");
+				error("Invalid types for arithmetic operation!");
 				return null;
 			}
 
@@ -392,6 +394,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 
 	public Type visitSizeOfExpr(SizeOfExpr v){
+		v.size_of_type.accept(this);
 		v.type = BaseType.INT;
 		return v.type;
 	}
@@ -408,7 +411,14 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		}
 
 		if(castTo instanceof PointerType && expr_Type instanceof ArrayType){
+			Type array_type = ((ArrayType) expr_Type).elem_type;
 			Type pointerTo = ((PointerType) castTo).point_to_type;
+
+			if(!checkType(array_type,pointerTo)){
+				error("Invalid casting!");
+				return null;
+			}
+
 			resultType = new PointerType(pointerTo);
 			v.type = resultType;
 			return resultType;
@@ -420,7 +430,6 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			v.type = resultType;
 			return resultType;
 		}
-
 		error("Invalid Casting!");
 		return null;
 	}
@@ -471,6 +480,11 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 		Type rhs_type = v.rhs.accept(this);
 
+		if(rhs_type == BaseType.VOID || rhs_type instanceof ArrayType){
+			error("Assign right hand side is not assignable!");
+			return null;
+		}
+
 		if (!checkType(lhs_type,rhs_type)){
 			//System.out.println(v.lhs.elem_type);
 			//System.out.println(v.rhs);
@@ -514,25 +528,6 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -24,3 +24,4 @@ public class SemanticAnalyzer {
 		return errors;
 	}
 }
+

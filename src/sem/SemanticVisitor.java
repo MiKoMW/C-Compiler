@@ -12,3 +12,4 @@ public interface SemanticVisitor<T> extends ast.ASTVisitor<T> {
 	 */
 	public int getErrorCount();
 }
+

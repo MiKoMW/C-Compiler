@@ -18,7 +18,6 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 	@Override
 	public Void visitStructTypeDecl(StructTypeDecl sts) {
 
-
 		if(scope.lookupCurrent(sts.struct_type.struct_Name) != null){
 			error("Var " + sts.struct_type.struct_Name +" was declared.");
 			return null;
@@ -84,7 +83,7 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 
 		scope.put(funDeclSymbol);
 		Scope oldScope = scope;
-		scope = new Scope(oldScope);
+		scope = funDeclSymbol.scope;
 
 		for(VarDecl varDecl : p.params) {
 
@@ -303,6 +302,8 @@ public class NameAnalysisVisitor extends BaseSemanticVisitor<Void> {
 	}
 
 	public Void visitTypecastExpr(TypecastExpr typecastExpr) {
+		//useless.
+		//typecastExpr.cast_type.accept(this);
 		typecastExpr.expr.accept(this);
 		return null;
 	}

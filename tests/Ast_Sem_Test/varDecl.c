@@ -23,6 +23,7 @@ int test(int a){
 int main(){
 
     struct a a;
+    void * ddd;
     //a.b = 1;
     a;
     d;
@@ -33,6 +34,7 @@ int main(){
     //b();
 
 
+    //dddddddd;
     //test('a');
 
 }
