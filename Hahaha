@@ -40,3 +40,10 @@ Array 怎么处理啊？
 public Void visitArrayAccessExpr(ArrayAccessExpr arrayAccessExpr){
 
 structacces如何检查.
+
+
+
+
+
+如果 main 没有 return 怎么办？？？？？
+
