@@ -7,6 +7,7 @@ public class FunDecl implements ASTNode {
     public final String name;
     public final List<VarDecl> params;
     public final Block block;
+    int memo_size;
 
     public FunDecl(Type fun_type, String name, List<VarDecl> params, Block block) {
 	    this.fun_type = fun_type;

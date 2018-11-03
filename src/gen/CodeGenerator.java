@@ -96,9 +96,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     private HashMap<String,StructInfo> strcutInfos = new HashMap<>();
 
-    boolean isMain;
+    private boolean isMain;
 
-    int current_Stack_offset;
+    private int current_Stack_offset;
 
 
     // Utility Function above.
@@ -161,6 +161,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitBlock(Block b) {
         // TODO: to complete
+
+
         return null;
     }
 
@@ -189,7 +191,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
         globalLevel = false;
 
         for(FunDecl funDecl : p.funDecls){
+            if(funDecl.name.equals("main")){
+                isMain = true;
+            }
             funDecl.accept(this);
+            isMain = false;
         }
 
         return null;

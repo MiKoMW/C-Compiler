@@ -13,4 +13,5 @@ public class ArrayType implements Type{
     public <T> T accept(ASTVisitor<T> v) {
         return v.visitArrayType(this);
     }
+
 }
