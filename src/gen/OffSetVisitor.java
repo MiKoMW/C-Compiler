@@ -122,14 +122,12 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 varDecl.isStatic = false;
                 varDecl.atRegister = null;
                 varDecl.stack_offset = current_Stack_offset;
+                varDecl.memo_size = strcutInfos.get(((StructType) varDecl.var_type).struct_Name).size;
                 //int temp_size = strcutInfos.get(((StructType) varDecl.var_type).struct_Name).size;
 
                 current_Stack_offset += varDecl.memo_size;
 
-            }
-
-
-            if(reg_count < 4){
+            }else if(reg_count < 4){
                 Register temp_reg = Register.paramRegs[reg_count];
                 varDecl.isStatic = false;
                 varDecl.atRegister = temp_reg;

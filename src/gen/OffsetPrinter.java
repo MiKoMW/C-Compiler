@@ -109,6 +109,8 @@ public class OffsetPrinter implements ASTVisitor<Void> {
         buf.add("FunDeclDecl=================");
 
         for (FunDecl fd : p.funDecls) {
+            buf.add("");
+            buf.add("FunName : " + fd.name);
             writer.print(delimiter);
             delimiter = ",";
             fd.accept(this);
@@ -147,6 +149,19 @@ public class OffsetPrinter implements ASTVisitor<Void> {
         writer.print("VarExpr(");
         writer.print(v.name);
         writer.print(")");
+
+        buf.add("");
+        buf.add("VarExpr : "+ v.name );
+        buf.add("Size : " + v.vd.memo_size);
+        if(v.vd.isStatic) {
+            buf.add("isStatic");
+        }else{
+            buf.add("OffSet : " + v.vd.stack_offset);
+        }
+        if(v.vd.atRegister != null){
+            buf.add(v.vd.atRegister.toString());
+        }
+
         return null;
     }
 

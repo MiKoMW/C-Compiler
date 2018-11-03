@@ -18,11 +18,13 @@ struct banana{
 int a;
 int b;
 
-int test(int a){
+int test(int a, struct apple iphone){
     int b;
     struct apple c;
 
 
+    a  = 1;
+    b = 2;
 
     {
     int a;
@@ -35,6 +37,7 @@ int main(){
     int a;
     int b;
     int c;
+    //test(1);
     return 0;
 
 }
