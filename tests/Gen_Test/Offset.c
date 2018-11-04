@@ -32,6 +32,11 @@ int test(int a, struct apple iphone, int q, int w, int e, int r){
 
 }
 
+int foo (int a){
+
+    return 1;
+}
+
 
 int main(){
     int a;
@@ -43,6 +48,12 @@ int main(){
     struct apple aiphone;
     struct banana ba;
     struct banana banas[10];
+
+    "dsadsad";
+    iphone;
+    foo(1);
+    banas;
+
         //test(1);
     return 0;
 

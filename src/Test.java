@@ -1,41 +1,40 @@
-import ast.BaseType;
-import lexer.Token;
+import gen.Register;
 
 public class Test
 {
     public static void main(String[] args){
 
 
-        System.out.println(BaseType.VOID );
+        int tempIdx = -27 * 4;
 
-
-
-    }
-
-    private static void error(Token.TokenClass... expected) {
-
-
-        StringBuilder sb = new StringBuilder();
-        String sep = "";
-        for (Token.TokenClass e : expected) {
-            sb.append(sep);
-            sb.append(e);
-            sep = "|";
-        }
-        System.out.println("Parsing error: expected ("+sb);
-
-    }
-
-    public static void test1(Integer... as){
-
-
-
-        for(Integer a : as){
-            System.out.println(a);
+        // saving all temp register/
+        for (Register register : Register.tmpRegs) {
+            tempIdx += 4;
         }
 
+        for(Register register : Register.paramRegs){
+            tempIdx += 4;
+        }
+
+        Register register = Register.v0;
+        tempIdx += 4;
+
+        register = Register.gp;
+        tempIdx += 4;
+
+
+        register = Register.ra;
+        tempIdx += 4;
+
+        register = Register.sp;
+        tempIdx += 4;
+
+        register = Register.fp;
+        tempIdx += 4;
+        System.out.print(tempIdx);
 
 
     }
+
 
 }

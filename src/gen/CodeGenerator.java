@@ -39,10 +39,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     private PrintWriter writer; // use this writer to output the assembly instructions
 
-
     public void emitProgram(Program program, File outputFile) throws FileNotFoundException {
         writer = new PrintWriter(outputFile);
-        init();
+        init(program);
         visitProgram(program);
         finale();
 
@@ -53,52 +52,168 @@ public class CodeGenerator implements ASTVisitor<Register> {
         writer.close();
     }
 
-    // Code starts Here!!!!!
+    // =============================================================================================
+    // Utility Function below.
+
 
     boolean globalLevel;
 
+    // Buffer the output.
     ArrayList<String> output = new ArrayList<>();
+
     ArrayList<String> mainFun = new ArrayList<>();
     ArrayList<String> funOut = new ArrayList<>();
     ArrayList<String> stastic_data = new ArrayList<>();
     ArrayList<String> currentList;
 
-    //HashMap<String,Integer> typeSize = new HashMap<>();
+    int lab_con;
 
-    private void init(){
+    private HashMap<String,StructInfo> strcutInfos = new HashMap<>();
+    private HashMap<String,String> str_label = new HashMap<>();
+    private HashMap<String,String> lib_fun = new HashMap<>();
+
+    private boolean isMain;
+
+    private int current_Stack_offset;
+
+
+    private void init(Program program){
 
         stastic_data.add(".data");
+        stastic_data.add(".align 2");
 
         funOut.add(".text");
         funOut.add("j main");
 
         mainFun.add(".globl main");
-        mainFun.add("main:");
-
-        ///memoryInfo.put("INT",);
-        //sizeof(char)==1, sizeof(int)==4, sizeof(int*)==4
+        //mainFun.add("main:");
 
         current_Stack_offset = 0;
+        OffSetVisitor offSetVisitor = new OffSetVisitor();
+        offSetVisitor.visitProgram(program);
+        this.strcutInfos = offSetVisitor.getStrcutInfos();
+        lab_con = 0;
+
+        lib_fun.put("print_s","li $v0, 4\nsyscall");
+        lib_fun.put("print_i","li $v0, 1\nsyscall");
+        lib_fun.put("print_c","li $v0, 11\nsyscall");
+        lib_fun.put("read_c","li $v0, 12\nsyscall");
+        lib_fun.put("read_i","li $v0, 5\nsyscall");
+
+        //这我也不知道对不对了!!!!!!!!
+        lib_fun.put("mcmalloc","li $v0, 9\nsyscall\n");
+
     }
 
     private void finale(){
 
         output.addAll(stastic_data);
         output.addAll(funOut);
+        //System.out.println(mainFun.size());indfsa
+        if (mainFun.size() < 2){
+            mainFun.add("main:");
+        }
         output.addAll(mainFun);
+
 
         // 这个有问题！！！！！
         output.add("li " + Register.v0.toString() + ", 10");
         output.add("syscall");
+    }
 
+    private String newLable(){
+        return "Lable"+(lab_con++)+":";
     }
 
 
-    private HashMap<String,StructInfo> strcutInfos = new HashMap<>();
+    //==================================================================================================================== 这个思考下。
+    //private int str_lab;
 
-    private boolean isMain;
+    private Stack<Stack<Register>> registerHistory = new Stack<>();
 
-    private int current_Stack_offset;
+    private void saveAllRegister(){
+
+        Stack<Register> freeRegs_temp = new Stack<Register>();
+        freeRegs_temp.addAll(freeRegs);
+        registerHistory.push(freeRegs_temp);
+
+        // saving all temp register/
+        for (Register register : Register.tmpRegs) {
+            currentList.add("sw " + register.toString() + ", " + "0($sp)");
+            currentList.add("addi " + "$sp, $sp, -4");
+        }
+
+        for(Register register : Register.paramRegs){
+            currentList.add("sw " + register.toString() + ", " + "0($sp)");
+            currentList.add("addi " + "$sp, $sp, -4");
+        }
+
+        Register register = Register.v0;
+        currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
+
+        register = Register.gp;
+        currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
+
+        register = Register.ra;
+        currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
+
+        register = Register.sp;
+        currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
+
+        register = Register.fp;
+        currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
+
+        currentList.add("move $fp, $sp");
+
+    }
+
+    private void loadAllRegisters(){
+        freeRegs = registerHistory.pop();
+
+        currentList.add("move $sp, $fp");
+        int tempIdx = -27 * 4;
+
+        // saving all temp register/
+        for (Register register : Register.tmpRegs) {
+            currentList.add("lw " + register.toString() + ", " + tempIdx + "($sp)");
+            tempIdx += 4;
+        }
+
+        for(Register register : Register.paramRegs){
+            currentList.add("lw " + register.toString() + ", " + tempIdx + "($sp)");
+            tempIdx += 4;
+        }
+
+        Register register = Register.v0;
+        currentList.add("lw " + register.toString() + ", " + tempIdx + "0($sp)");
+        tempIdx += 4;
+
+        register = Register.gp;
+        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
+        tempIdx += 4;
+
+
+        register = Register.ra;
+        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
+        tempIdx += 4;
+
+        register = Register.sp;
+        currentList.add("sw " + register.toString() + ", " +tempIdx+ "0($sp)");
+        tempIdx += 4;
+
+        register = Register.fp;
+        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
+        tempIdx += 4;
+        if(tempIdx!=0){
+            System.err.println("好像有什么不对？");
+        }
+
+    }
 
 
     // Utility Function above.
@@ -114,7 +229,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     public Register visitStructTypeDecl(StructTypeDecl st) {
 
         //strcutInfo.put(st.struct_type.struct_Name,new StructInfo(st,strcutInfo));
-
+/*
         String type = st.struct_type.struct_Name;
         HashMap<String,Integer> innerVars = new HashMap<>();
 
@@ -154,22 +269,64 @@ public class CodeGenerator implements ASTVisitor<Register> {
         }
 
         strcutInfos.put(type,new StructInfo(type,con,innerVars));
-
+*/
         return null;
     }
 
     @Override
     public Register visitBlock(Block b) {
-        // TODO: to complete
 
+        for(VarDecl varDecl : b.vardelcs){
+            varDecl.accept(this);
+        }
+
+        for(Stmt stmt : b.stmts){
+            stmt.accept(this);
+        }
 
         return null;
     }
 
     @Override
     public Register visitFunDecl(FunDecl p) {
-        // TODO: to complete
+
+        ArrayList<String> cur_List;
+        current_Stack_offset = 0;
+        if(p.name.equals("main")){
+            cur_List = mainFun;
+        }else{
+            cur_List = funOut;
+        }
+
+        cur_List.add(p.name + ":");
+
+        if(lib_fun.containsKey(p.name)){
+            cur_List.add(lib_fun.get(p.name));
+            currentList.add("jr " + Register.ra.toString());
+            return null;
+        }
+
+
+        //这个得思考下？
+        //没啥用的啊？
+        // 这个问题贼鸡儿大！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
+        for(VarDecl varDecl : p.params){
+            varDecl.accept(this);
+            System.out.println(varDecl.varName);
+            System.out.println(varDecl.var_type);
+            System.out.println(varDecl.isStatic);
+            System.out.println(varDecl.atRegister);
+
+        }
+
+        p.block.accept(this);
+
+        if(!isMain) {
+            currentList.add("jr " + Register.ra.toString());
+        }
+
         return null;
+
     }
 
     @Override
@@ -194,9 +351,18 @@ public class CodeGenerator implements ASTVisitor<Register> {
             if(funDecl.name.equals("main")){
                 isMain = true;
             }
+            if(isMain){
+                currentList = mainFun;
+            }else{
+                currentList = funOut;
+            }
             funDecl.accept(this);
             isMain = false;
         }
+
+
+        //currentList.add("li  " + Register.v0.toString() + ", 10");
+        //currentList.add("syscall");
 
         return null;
 
@@ -204,7 +370,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitVarDecl(VarDecl vd) {
-        if(globalLevel) {
+        if(vd.isStatic) {
             if (vd.var_type instanceof StructType) {
 
                 String structName = ((StructType) vd.var_type).struct_Name;
@@ -236,7 +402,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
             }
 
-        }else{
+        }else if(vd.atRegister != null){
+          // 貌似什么都不需要做啊？
+        } else{
 
             // addi $sp , $sp, -4
 
@@ -246,9 +414,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList = funOut;
             }
 
+            vd.stack_offset = current_Stack_offset;
+
             if (vd.var_type instanceof StructType) {
                 String structName = ((StructType) vd.var_type).struct_Name;
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " + strcutInfos.get(structName).size);
+                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + strcutInfos.get(structName).size);
                 current_Stack_offset -= strcutInfos.get(structName).size;
 
             } else if (vd.var_type instanceof ArrayType) {
@@ -256,7 +426,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 int size = ((ArrayType) vd.var_type).size;
 
                 if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " + size);
+                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + size);
                     current_Stack_offset -= size;
                 } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
 
@@ -266,21 +436,22 @@ public class CodeGenerator implements ASTVisitor<Register> {
                         System.err.println("Something must be wrong!!");
                         return null;
                     }
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  structInfo.size * size);
+                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  structInfo.size * size);
                     current_Stack_offset -= structInfo.size * size;
 
                 } else {
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  size * 4);
+                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  size * 4);
                     current_Stack_offset -= size * 4;
 
                 }
             } else if (vd.var_type == BaseType.CHAR) {
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  1);
+                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  1);
                 current_Stack_offset -= 1;
             } else {
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  4);
+                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
                 current_Stack_offset -= 4;
             }
+
 
         }
 
@@ -289,8 +460,29 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitVarExpr(VarExpr v) {
-        // TODO: to complete
-        return null;
+
+        VarDecl varDecl = v.vd;
+
+        if(v.vd.atRegister != null){
+            return v.vd.atRegister;
+        }
+
+        if(varDecl.isStatic){
+            Register addr = getRegister();
+            currentList.add("la " + addr.toString() + ", " + varDecl.varName);
+            Register result  = getRegister();
+            currentList.add("lw " + addr.toString() + ", " + result.toString());
+            freeRegister(addr);
+            return result;
+        } else{
+            int offset = varDecl.stack_offset;
+            Register result  = getRegister();
+            currentList.add("lw " + result.toString() + ", " +(-offset) + "($fp)");
+            freeRegister(result);
+            return result;
+        }
+
+        //return null;
     }
 
     @Override
@@ -310,27 +502,111 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitIntLiteral(IntLiteral v) {
-        return null;
+        Register result = getRegister();
+        currentList.add("li " + result.toString() + ", " + v.value);
+        return result;
     }
 
     @Override
     public Register visitStrLiteral(StrLiteral v) {
-        return null;
+        Register result = getRegister();
+        String label = newLable();
+        stastic_data.add(label + ": " + ".asciiz " + "\"" + v + "\"");
+        str_label.put(v.value, label);
+        currentList.add("la " + result.toString() + ", " + label);
+        return result;
     }
 
     @Override
     public Register visitChrLiteral(ChrLiteral v) {
-        return null;
+        Register result = getRegister();
+        currentList.add("li " + result.toString() + ", "+ ((int) v.value));
+        return result;
     }
 
     @Override
     public Register visitFunCallExpr(FunCallExpr v) {
-        return null;
+
+        // save temp register.
+
+        saveAllRegister();
+        FunDecl funDecl = v.funDecl;
+
+        int temp = 0;
+        for(VarDecl varDecl : funDecl.params){
+            if (varDecl.atRegister != null){
+                currentList.add("move " + varDecl.atRegister.toString() + " , " + v.params.get(temp).accept(this).toString());
+                freeRegister(v.params.get(temp).accept(this));
+            } else if(varDecl.isStatic){
+                currentList.add("sw " + v.params.get(temp).accept(this).toString() + " , " + varDecl.varName);
+                freeRegister(v.params.get(temp).accept(this));
+            } else {
+                currentList.add("sw " + v.params.get(temp).accept(this).toString() + " , " + -varDecl.stack_offset + "(" + Register.fp + ")");
+                freeRegister(v.params.get(temp).accept(this));
+            }
+        }
+
+
+        Register result;
+
+        currentList.add("jal " + v.fun_name);
+
+        loadAllRegisters();
+
+        // 我们需要研究library function！！ =========================================================================================================================================
+        return Register.v0;
     }
 
     @Override
     public Register visitBinOp(BinOp v) {
-        return null;
+        Register lhs = v.first.accept(this);
+        Register rhs = v.second.accept(this);
+        Register result = getRegister();
+
+        switch (v.operator) {
+            case ADD:
+                currentList.add("add " + result.toString() + ", " + lhs.toString() + ", " + rhs.toString());
+                break;
+            case SUB:
+                currentList.add("sub " + result.toString() + ", " + lhs.toString() + ", " + rhs.toString());
+                break;
+            case DIV:
+                currentList.add("div " + lhs.toString() + ", " + rhs.toString());
+                currentList.add("mflo " + result.toString());
+                break;
+            case MUL:
+                currentList.add("mult " + lhs.toString() + ", " + rhs.toString());
+                currentList.add("mflo " + result.toString());
+
+                break;
+            case MOD:
+                currentList.add("div " + lhs.toString() + ", " + rhs.toString());
+                currentList.add("mfhi " + result.toString());
+                break;
+            case GE:
+                currentList.add("sge " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case LE:
+                currentList.add("sle " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case GT:
+                currentList.add("sgt " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case LT:
+                currentList.add("slt " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case NE:
+                currentList.add("sne " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case EQ:
+                currentList.add("seq " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            default:
+                result = null;
+        }
+        freeRegister(lhs);
+        freeRegister(rhs);
+        return result;
     }
 
     @Override
@@ -343,8 +619,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
         return null;
     }
 
+    // 这些都留着之后些吧。 ============================================================================================================================================================
     @Override
     public Register visitFieldAccessExpr(FieldAccessExpr v) {
+
         return null;
     }
 
@@ -365,11 +643,13 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitExprStmt(ExprStmt v) {
-        return null;
+
+        return v.expr.accept(this);
     }
 
     @Override
     public Register visitWhile(While v) {
+
         return null;
     }
 
@@ -380,11 +660,39 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitAssign(Assign v) {
+
+        Register lhsReg = v.lhs.accept(this);
+        Register rhsReg = v.rhs.accept(this);
+
+
+        // 未完待续。 ================================================================================================================
+
+        //VarExpr, FieldAccessExpr, ArrayAccessExpr or ValuteAtExpr.
+
+        if(v.lhs instanceof  VarExpr) {
+            if (((VarExpr) v.lhs).vd.isStatic) {
+                currentList.add("sw  " + rhsReg.toString() + ", " + ((VarExpr) v.lhs).name);
+            } else if (((VarExpr) v.lhs).vd.atRegister != null) {
+                currentList.add("move  " + lhsReg.toString() + ", " + rhsReg.toString());
+            } else {
+                currentList.add("sw " + rhsReg.toString() + " " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+            }
+        }
+
+
         return null;
     }
 
     @Override
     public Register visitReturn(Return v) {
-        return null;
+
+        Register register = v.expr.accept(this);
+
+        currentList.add("move  " + Register.v0.toString() + ", " + register.toString());
+
+        freeRegister(register);
+
+        return  Register.v0;
+
     }
 }
