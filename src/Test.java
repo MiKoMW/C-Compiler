@@ -6,13 +6,17 @@ public class Test
 
 
         int tempIdx = -27 * 4;
+        int con = 111;
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
+            System.out.println("li " + register.toString() + ", " + (con++));
             tempIdx += 4;
         }
 
         for(Register register : Register.paramRegs){
+            System.out.println("li " + register.toString() + ", " + (con++));
+
             tempIdx += 4;
         }
 
@@ -31,10 +35,15 @@ public class Test
 
         register = Register.fp;
         tempIdx += 4;
-        System.out.print(tempIdx);
+        //System.out.print(tempIdx);
+
+
+
+
 
 
     }
+
 
 
 }

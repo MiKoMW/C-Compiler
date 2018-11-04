@@ -86,7 +86,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
         funOut.add("j main");
 
         mainFun.add(".globl main");
-        //mainFun.add("main:");
+        mainFun.add("main:");
+        mainFun.add("move $fp, $sp");
 
         current_Stack_offset = 0;
         OffSetVisitor offSetVisitor = new OffSetVisitor();
@@ -136,6 +137,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Stack<Register> freeRegs_temp = new Stack<Register>();
         freeRegs_temp.addAll(freeRegs);
         registerHistory.push(freeRegs_temp);
+        freeRegs = new Stack<>();
+        freeRegs.addAll(Register.tmpRegs);
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
@@ -157,10 +160,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
         currentList.add("addi " + "$sp, $sp, -4");
 
         register = Register.ra;
-        currentList.add("sw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-
-        register = Register.sp;
         currentList.add("sw " + register.toString() + ", " + "0($sp)");
         currentList.add("addi " + "$sp, $sp, -4");
 
@@ -176,42 +175,35 @@ public class CodeGenerator implements ASTVisitor<Register> {
         freeRegs = registerHistory.pop();
 
         currentList.add("move $sp, $fp");
-        int tempIdx = -27 * 4;
+        int tempIdx = 26 * 4;
+        currentList.add("addi " + "$sp, $sp, " + tempIdx);
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
-            currentList.add("lw " + register.toString() + ", " + tempIdx + "($sp)");
-            tempIdx += 4;
+            currentList.add("lw " + register.toString() + ", " + "0($sp)");
+            currentList.add("addi " + "$sp, $sp, -4");
         }
 
         for(Register register : Register.paramRegs){
-            currentList.add("lw " + register.toString() + ", " + tempIdx + "($sp)");
-            tempIdx += 4;
+            currentList.add("lw " + register.toString() + ", " + "0($sp)");
+            currentList.add("addi " + "$sp, $sp, -4");
         }
 
         Register register = Register.v0;
-        currentList.add("lw " + register.toString() + ", " + tempIdx + "0($sp)");
-        tempIdx += 4;
+        currentList.add("lw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
 
         register = Register.gp;
-        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
-        tempIdx += 4;
-
+        currentList.add("lw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
 
         register = Register.ra;
-        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
-        tempIdx += 4;
-
-        register = Register.sp;
-        currentList.add("sw " + register.toString() + ", " +tempIdx+ "0($sp)");
-        tempIdx += 4;
+        currentList.add("lw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
 
         register = Register.fp;
-        currentList.add("lw " + register.toString() + ", " +tempIdx+ "0($sp)");
-        tempIdx += 4;
-        if(tempIdx!=0){
-            System.err.println("好像有什么不对？");
-        }
+        currentList.add("lw " + register.toString() + ", " + "0($sp)");
+        currentList.add("addi " + "$sp, $sp, -4");
 
     }
 
@@ -296,11 +288,15 @@ public class CodeGenerator implements ASTVisitor<Register> {
             cur_List = mainFun;
         }else{
             cur_List = funOut;
+            cur_List.add(p.name + ":");
         }
 
-        cur_List.add(p.name + ":");
 
         if(lib_fun.containsKey(p.name)){
+            int temp = 0;
+            for(VarDecl varDecl : p.params){
+                varDecl.atRegister = Register.paramRegs[temp++];
+            }
             cur_List.add(lib_fun.get(p.name));
             currentList.add("jr " + Register.ra.toString());
             return null;
@@ -533,6 +529,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
         FunDecl funDecl = v.funDecl;
 
         int temp = 0;
+        if(lib_fun.containsKey(v.fun_name)){
+            currentList.add("move " + Register.paramRegs[0] + " , " + v.params.get(temp).accept(this).toString());
+        }else{
         for(VarDecl varDecl : funDecl.params){
             if (varDecl.atRegister != null){
                 currentList.add("move " + varDecl.atRegister.toString() + " , " + v.params.get(temp).accept(this).toString());
@@ -544,6 +543,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("sw " + v.params.get(temp).accept(this).toString() + " , " + -varDecl.stack_offset + "(" + Register.fp + ")");
                 freeRegister(v.params.get(temp).accept(this));
             }
+            temp++;
+        }
         }
 
 
