@@ -2,6 +2,7 @@ package gen;
 
 import ast.*;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +24,12 @@ public class OffsetPrinter implements ASTVisitor<Void> {
     public void init(Program program){
         OffSetVisitor offSetVisitor = new OffSetVisitor();
         offSetVisitor.visitProgram(program);
+        CodeGenerator codeGenerator = new CodeGenerator();
+        try {
+            codeGenerator.emitProgram(program, new File("test.out"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         this.strcutInfos = offSetVisitor.getStrcutInfos();
         buf.add("");
     }

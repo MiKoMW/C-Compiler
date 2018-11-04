@@ -454,30 +454,53 @@ public class CodeGenerator implements ASTVisitor<Register> {
         return null;
     }
 
+    // 基本类型传值，其他类型传址。
     @Override
     public Register visitVarExpr(VarExpr v) {
 
+        Register ans = getRegister();
         VarDecl varDecl = v.vd;
+        Register addrReg = getRegister();
+
 
         if(v.vd.atRegister != null){
-            return v.vd.atRegister;
+            currentList.add("move " + ans.toString() + v.vd.atRegister.toString());
+            freeRegister(addrReg);
+            return ans;
         }
+
 
         if(varDecl.isStatic){
-            Register addr = getRegister();
-            currentList.add("la " + addr.toString() + ", " + varDecl.varName);
-            Register result  = getRegister();
-            currentList.add("lw " + addr.toString() + ", " + result.toString());
-            freeRegister(addr);
-            return result;
+            if(varDecl.var_type == BaseType.INT || varDecl.var_type instanceof PointerType){
+                currentList.add("la "+addrReg.toString()+","+v.name);
+                currentList.add("lw "+ans.toString()+", ("+addrReg.toString()+")");
+                freeRegister(addrReg);
+            } else if (varDecl.var_type == BaseType.CHAR){
+                currentList.add("la "+addrReg.toString()+","+v.name);
+                currentList.add("lb "+ans.toString()+", ("+addrReg.toString()+")");
+                freeRegister(addrReg);
+            } else {
+                writer.println("la "+addrReg.toString()+","+v.name);
+                freeRegister(ans);
+                return addrReg;
+            }
+            return ans;
         } else{
-            int offset = varDecl.stack_offset;
-            Register result  = getRegister();
-            currentList.add("lw " + result.toString() + ", " +(-offset) + "($fp)");
-            freeRegister(result);
-            return result;
-        }
 
+            if(varDecl.var_type == BaseType.INT || varDecl.var_type instanceof PointerType){
+                currentList.add("lw "+ans.toString()+", " + varDecl.stack_offset + "("+Register.fp.toString()+")");
+                freeRegister(addrReg);
+            } else if (varDecl.var_type == BaseType.CHAR){
+                currentList.add("lb "+ans.toString()+", " + varDecl.stack_offset + "("+Register.fp.toString()+")");
+                freeRegister(addrReg);
+            } else {
+                currentList.add("la "+ans.toString()+", "+ varDecl.stack_offset + "("+Register.fp.toString()+")");
+                freeRegister(ans);
+                return addrReg;
+            }
+            return ans;
+
+        }
         //return null;
     }
 
@@ -558,10 +581,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
         return Register.v0;
     }
 
+    // 所有的register都会被free。
     @Override
     public Register visitBinOp(BinOp v) {
         Register lhs = v.first.accept(this);
         Register rhs = v.second.accept(this);
+
         Register result = getRegister();
 
         switch (v.operator) {
