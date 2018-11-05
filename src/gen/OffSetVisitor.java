@@ -61,10 +61,10 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 }
                 con += structInfo.size;
             } else if(varDecl.var_type == BaseType.CHAR){
-                con+=1;
+                con+=4;
             } else if(varDecl.var_type instanceof ArrayType){
                 if(((ArrayType)varDecl.var_type).elem_type == BaseType.CHAR){
-                    con += ((ArrayType)varDecl.var_type).size;
+                    con += ((ArrayType)varDecl.var_type).size * 4;
                 }else if(((ArrayType)varDecl.var_type).elem_type instanceof StructType){
 
                     StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) varDecl.var_type).elem_type).struct_Name);
@@ -186,7 +186,7 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
             int size = ((ArrayType) vd.var_type).size;
 
             if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
-                vd.memo_size = size;
+                vd.memo_size = size * 4;
             } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
 
                 StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
@@ -200,7 +200,7 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 vd.memo_size = size * 4;
             }
         } else if (vd.var_type == BaseType.CHAR) {
-            vd.memo_size = 1;
+            vd.memo_size = 4;
         } else {
             vd.memo_size = 4;
         }
@@ -240,7 +240,7 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
         int size = v.size;
 
         if (v.elem_type == BaseType.CHAR) {
-            return size;
+            return size * 4;
         } else if (v.elem_type instanceof StructType) {
 
             StructInfo structInfo = strcutInfos.get(((StructType) v.elem_type).struct_Name);
