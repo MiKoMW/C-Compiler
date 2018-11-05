@@ -102,7 +102,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         lib_fun.put("read_i","li $v0, 5\nsyscall");
 
         //这我也不知道对不对了!!!!!!!!
-        lib_fun.put("mcmalloc","li $v0, 9\nsyscall\n");
+        lib_fun.put("mcmalloc","li $v0, 9\nsyscall");
 
     }
 
@@ -547,7 +547,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     public Register visitStrLiteral(StrLiteral v) {
         Register result = getRegister();
         String label = newLable();
-        stastic_data.add(label + ": " + ".asciiz " + "\"" + v + "\"");
+        stastic_data.add(label + ": " + ".asciiz " + "\"" + v.value + "\"");
         str_label.put(v.value, label);
         currentList.add("la " + result.toString() + ", " + label);
         return result;
@@ -908,9 +908,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
             }
         } else {
             if(atRegister){
-                currentList.add("move " + lhsReg.toString() + ", " + rhsReg.toString());
+                currentList.add("move " + lhsReg.toString() + ", (" + rhsReg.toString() + ")");
             }else {
-                currentList.add("sw  " + rhsReg.toString() + ", " + lhsReg.toString());
+                currentList.add("sw  " + rhsReg.toString() + ", (" + lhsReg.toString()+")");
             }
         }
 
