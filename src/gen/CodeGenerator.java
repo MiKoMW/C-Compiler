@@ -123,7 +123,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     }
 
     private String newLable(){
-        return "Lable"+(lab_con++)+":";
+        return "Lable"+(lab_con++);
     }
 
 
@@ -366,11 +366,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitVarDecl(VarDecl vd) {
+
         if(vd.isStatic) {
             if (vd.var_type instanceof StructType) {
-
                 String structName = ((StructType) vd.var_type).struct_Name;
                 stastic_data.add(vd.varName + ": .space " + strcutInfos.get(structName).size);
+                vd.memo_size = strcutInfos.get(structName).size;
 
             } else if (vd.var_type instanceof ArrayType) {
 
@@ -378,6 +379,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
                 if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
                     stastic_data.add(vd.varName + ": .space " + size);
+                    vd.memo_size = size;
+
                 } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
 
                     StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
@@ -387,21 +390,28 @@ public class CodeGenerator implements ASTVisitor<Register> {
                         return null;
                     }
                     stastic_data.add(vd.varName + ": .space " + structInfo.size * size);
+                    vd.memo_size = structInfo.size * size;
+
 
                 } else {
                     stastic_data.add(vd.varName + ": .space " + size * 4);
+                    vd.memo_size = 4 * size;
+
                 }
             } else if (vd.var_type == BaseType.CHAR) {
                 stastic_data.add(vd.varName + ": .space " + 1);
+                vd.memo_size = 1;
+
             } else {
                 stastic_data.add(vd.varName + ": .space " + 4);
-
+                vd.memo_size = 4;
             }
 
         }else if(vd.atRegister != null){
           // 貌似什么都不需要做啊？
         } else{
 
+            //Dynamic
             // addi $sp , $sp, -4
 
             if(isMain){
@@ -415,7 +425,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
             if (vd.var_type instanceof StructType) {
                 String structName = ((StructType) vd.var_type).struct_Name;
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + strcutInfos.get(structName).size);
-                current_Stack_offset -= strcutInfos.get(structName).size;
+                vd.memo_size = strcutInfos.get(structName).size;
+                current_Stack_offset += strcutInfos.get(structName).size;
 
             } else if (vd.var_type instanceof ArrayType) {
 
@@ -423,9 +434,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
                 if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + size);
-                    current_Stack_offset -= size;
-                } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
+                    vd.memo_size = size;
 
+                    current_Stack_offset += size;
+                } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
                     StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
 
                     if (structInfo == null) {
@@ -433,19 +445,23 @@ public class CodeGenerator implements ASTVisitor<Register> {
                         return null;
                     }
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  structInfo.size * size);
-                    current_Stack_offset -= structInfo.size * size;
+                    vd.memo_size = structInfo.size * size;
+                    current_Stack_offset += structInfo.size * size;
 
                 } else {
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  size * 4);
-                    current_Stack_offset -= size * 4;
+                    vd.memo_size = 4 * size;
+                    current_Stack_offset += size * 4;
 
                 }
             } else if (vd.var_type == BaseType.CHAR) {
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  1);
-                current_Stack_offset -= 1;
+                vd.memo_size = 1;
+                current_Stack_offset += 1;
             } else {
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
-                current_Stack_offset -= 4;
+                vd.memo_size = 4;
+                current_Stack_offset += 4;
             }
 
 
@@ -458,6 +474,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitVarExpr(VarExpr v) {
 
+        //基本类型传值，array和structure传址。
         Register ans = getRegister();
         VarDecl varDecl = v.vd;
         Register addrReg = getRegister();
@@ -486,15 +503,14 @@ public class CodeGenerator implements ASTVisitor<Register> {
             }
             return ans;
         } else{
-
             if(varDecl.var_type == BaseType.INT || varDecl.var_type instanceof PointerType){
-                currentList.add("lw "+ans.toString()+", " + varDecl.stack_offset + "("+Register.fp.toString()+")");
+                currentList.add("lw "+ans.toString()+", " + -varDecl.stack_offset + "("+Register.fp.toString()+")");
                 freeRegister(addrReg);
             } else if (varDecl.var_type == BaseType.CHAR){
-                currentList.add("lb "+ans.toString()+", " + varDecl.stack_offset + "("+Register.fp.toString()+")");
+                currentList.add("lb "+ans.toString()+", " + -varDecl.stack_offset + "("+Register.fp.toString()+")");
                 freeRegister(addrReg);
             } else {
-                currentList.add("la "+ans.toString()+", "+ varDecl.stack_offset + "("+Register.fp.toString()+")");
+                currentList.add("la "+ans.toString()+", "+ -varDecl.stack_offset + "("+Register.fp.toString()+")");
                 freeRegister(ans);
                 return addrReg;
             }
@@ -642,45 +658,206 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitArrayAccessExpr(ArrayAccessExpr v) {
-        return null;
+
+        //我们假设所有array都是传址的。
+        Register ans = getRegister();
+        Register arr = v.array.accept(this);
+        Register idx = v.index.accept(this);
+
+        boolean isStatic = ((VarExpr) v.array).vd.isStatic;
+        Type type = ((VarExpr) v.array).vd.var_type;
+
+        if(isStatic) {
+            if (type == BaseType.CHAR) {
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            }
+            if (type instanceof StructType) {
+                int size = ((VarExpr) v.array).vd.memo_size;
+                Register temp = getRegister();
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("li " + temp.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                currentList.add("li " + temp.toString() + ",  " + size);
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                freeRegister(temp);
+                currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            } else {
+                Register temp = getRegister();
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("li " + temp.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                freeRegister(temp);
+                currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            }
+        }else {
+            if (type == BaseType.CHAR) {
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("sub " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            }
+            if (type instanceof StructType) {
+                int size = ((VarExpr) v.array).vd.memo_size;
+                Register temp = getRegister();
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("li " + temp.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                currentList.add("li " + temp.toString() + ",  " + size);
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                freeRegister(temp);
+                currentList.add("sub " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            } else {
+                Register temp = getRegister();
+                currentList.add("move " + ans.toString() + ", " + arr.toString());
+                currentList.add("li " + temp.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
+                freeRegister(temp);
+                currentList.add("sub " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
+            }
+        }
+
+        freeRegister(arr);
+        freeRegister(idx);
+        return ans;
     }
 
     // 这些都留着之后些吧。 ============================================================================================================================================================
+
+    // 这货就应该返还pointer！ 这东西register里面是address。
     @Override
     public Register visitFieldAccessExpr(FieldAccessExpr v) {
 
-        return null;
+        Register ans = getRegister();
+
+        //如果是structure 这货应该是传址的。
+        Register struct = v.struct.accept(this);
+
+        String structName = ((StructType) ((VarExpr)v.struct).vd.var_type).struct_Name;
+
+        StructInfo structInfo = strcutInfos.get(structName);
+
+        int offset = structInfo.innerDecl.get(structName);
+        //Type type = structInfo.typeMapping.get(structName);
+
+        if( ( ((VarExpr)v.struct).vd.isStatic)){
+            currentList.add("move " + ans.toString() + ", " + struct.toString());
+            currentList.add("addi " + ans.toString() + ", " + offset);
+        }else{
+            currentList.add("move " + ans.toString() + ", " + struct.toString());
+            currentList.add("addi " + ans.toString() + ", " + -offset);
+        }
+        freeRegister(struct);
+        return ans;
     }
 
     @Override
     public Register visitValueAtExpr(ValueAtExpr v) {
-        return null;
+
+        Register ans = getRegister();
+        Register expr = v.expr.accept(this);
+
+        currentList.add("move " + ans.toString() + ", " + expr.toString());
+        currentList.add("lw " + ans.toString() + ", " + ans.toString());
+        freeRegister(expr);
+
+        return ans;
     }
 
     @Override
     public Register visitSizeOfExpr(SizeOfExpr v) {
-        return null;
+
+        Register ans = getRegister();
+
+        if(v.size_of_type == BaseType.INT){
+            currentList.add("li " + ans.toString() + ", 4");
+        }else if(v.size_of_type == BaseType.CHAR){
+            currentList.add("li " + ans.toString() + ", 1");
+        } else if(v.size_of_type instanceof PointerType){
+            currentList.add("li " + ans.toString() + ", 4");
+        } else if(v.size_of_type instanceof ArrayType) {
+            int size = 0;
+            if (((ArrayType) v.size_of_type).elem_type == BaseType.CHAR) {
+                size = ((ArrayType) v.size_of_type).size;
+            } else if (((ArrayType) v.size_of_type).elem_type instanceof StructType) {
+
+                StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) v.size_of_type).elem_type).struct_Name);
+
+                if (structInfo == null) {
+                    System.err.println("Something must be wrong!!");
+                    return null;
+                }
+                size = structInfo.size * ((ArrayType) v.size_of_type).size;
+            } else {
+                size = ((ArrayType) v.size_of_type).size * 4;
+            }
+            currentList.add("li " + ans.toString() + ", " + size);
+        } else if(v.size_of_type instanceof StructType){
+                StructInfo structInfo = strcutInfos.get(((StructType) v.size_of_type).struct_Name);
+                if (structInfo == null){
+                    System.err.println("Something must be wrong!!");
+                    return null;
+                }
+                currentList.add("li " + ans.toString() + ", " + structInfo.size);
+        } else{
+            currentList.add("li " + ans.toString() + ", 4");
+        }
+        return ans;
     }
 
+    // mips这没啥用吧？
     @Override
     public Register visitTypecastExpr(TypecastExpr v) {
-        return null;
+        // 我就要这么写！：）
+        Register ans = v.expr.accept(this);
+        return ans;
     }
 
     @Override
     public Register visitExprStmt(ExprStmt v) {
-
-        return v.expr.accept(this);
+        Register ans = v.expr.accept(this);
+        return ans;
     }
 
     @Override
     public Register visitWhile(While v) {
+
+        String start = newLable();
+        String end = newLable();
+        Register con = v.expr.accept(this);
+
+        currentList.add(start + ":");
+        currentList.add("beqz " + con.toString() + ", " + end);
+        v.stmt.accept(this);
+        currentList.add("j " + start);
+        currentList.add(end + ":");
+        freeRegister(con);
 
         return null;
     }
 
     @Override
     public Register visitIf(If v) {
+
+        String elseLab = newLable();
+        String endLab = newLable();
+
+        Register con = v.expr.accept(this);
+
+        currentList.add("beqz " + con.toString() + ", " + elseLab);
+
+        v.stmt1.accept(this);
+
+        currentList.add("j " + endLab);
+
+        currentList.add(elseLab = ":");
+
+        if(v.stmt2!=null){
+            v.stmt2.accept(this);
+        }
+
+        currentList.add(endLab + ":");
+
+        freeRegister(con);
+
         return null;
     }
 
@@ -690,20 +867,53 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Register lhsReg = v.lhs.accept(this);
         Register rhsReg = v.rhs.accept(this);
 
-
-        // 未完待续。 ================================================================================================================
-
         //VarExpr, FieldAccessExpr, ArrayAccessExpr or ValuteAtExpr.
 
         if(v.lhs instanceof  VarExpr) {
+            currentList.add("move " + lhsReg.toString() + ", " + rhsReg.toString());
+
             if (((VarExpr) v.lhs).vd.isStatic) {
-                currentList.add("sw  " + rhsReg.toString() + ", " + ((VarExpr) v.lhs).name);
-            } else if (((VarExpr) v.lhs).vd.atRegister != null) {
-                currentList.add("move  " + lhsReg.toString() + ", " + rhsReg.toString());
+                if(((VarExpr) v.lhs).vd.var_type == BaseType.INT || ((VarExpr) v.lhs).vd.var_type instanceof PointerType) {
+                    currentList.add("sw  " + rhsReg.toString() + ", " + ((VarExpr) v.lhs).name);
+                }else {
+                    currentList.add("sb  " + rhsReg.toString() + ", " + ((VarExpr) v.lhs).name);
+
+                }
+            }  else if (((VarExpr) v.lhs).vd.atRegister != null) {
+                //currentList.add("move  " + lhsReg.toString() + ", " + rhsReg.toString());
             } else {
-                currentList.add("sw " + rhsReg.toString() + " " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+                if(((VarExpr) v.lhs).vd.var_type == BaseType.INT || ((VarExpr) v.lhs).vd.var_type instanceof PointerType) {
+                    currentList.add("sw  " + rhsReg.toString() + ", " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+                }else {
+                    currentList.add("sb  " + rhsReg.toString() + ", " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+
+                }
             }
+        }else if(v.lhs instanceof  FieldAccessExpr){
+            //这个不一定对。 希望传址。
+
+            //Register field = ((FieldAccessExpr) v.lhs).accept(this);
+
+            if (((VarExpr) ((FieldAccessExpr) v.lhs).struct).vd.isStatic){
+                StructInfo structInfo = strcutInfos.get(((StructType)((VarExpr) ((FieldAccessExpr) v.lhs).struct).vd.var_type).struct_Name);
+                int offset = structInfo.innerDecl.get(((FieldAccessExpr) v.lhs).field);
+                Type type = structInfo.typeMapping.get(((FieldAccessExpr) v.lhs).field);
+
+                if(((VarExpr) v.lhs).vd.var_type == BaseType.INT || ((VarExpr) v.lhs).vd.var_type instanceof PointerType) {
+                    currentList.add("sw  " + rhsReg.toString() + ", " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+                }else {
+                    currentList.add("sb  " + rhsReg.toString() + ", " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
+
+                }
+
+
+
+            }
+
+
+
         }
+
 
 
         return null;
@@ -711,14 +921,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitReturn(Return v) {
-
         Register register = v.expr.accept(this);
-
         currentList.add("move  " + Register.v0.toString() + ", " + register.toString());
-
         freeRegister(register);
-
         return  Register.v0;
-
     }
 }

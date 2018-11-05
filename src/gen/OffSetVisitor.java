@@ -25,11 +25,8 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
     }
 
     public HashMap<String,StructInfo> getStrcutInfos(){
-        return  this.strcutInfos;
+        return this.strcutInfos;
     }
-
-
-
 
     @Override
     public Integer visitBaseType(BaseType bt) {
@@ -48,13 +45,14 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
 
         String type = st.struct_type.struct_Name;
         HashMap<String,Integer> innerVars = new HashMap<>();
+        HashMap<String,Type> typeHashMap = new HashMap<>();
 
         int con = 0;
 
         for(VarDecl varDecl : st.varDecls){
 
             innerVars.put(varDecl.varName,con);
-
+            typeHashMap.put(varDecl.varName,varDecl.var_type);
             if(varDecl.var_type instanceof StructType){
                 StructInfo structInfo = strcutInfos.get(((StructType) varDecl.var_type).struct_Name);
                 if (structInfo == null){
@@ -84,14 +82,13 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
             }
         }
 
-        strcutInfos.put(type,new StructInfo(type,con,innerVars));
+        strcutInfos.put(type,new StructInfo(type,con,innerVars,typeHashMap));
 
         return con;
     }
 
     @Override
     public Integer visitBlock(Block b) {
-
 
         int temp = current_Stack_offset;
 
@@ -136,6 +133,8 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 varDecl.isStatic = false;
                 varDecl.atRegister = null;
                 varDecl.stack_offset = current_Stack_offset;
+                //这不太对。到时候改。反正这个class不做offset的工作。
+                varDecl.memo_size = 4;
                 current_Stack_offset += varDecl.memo_size;
             }
 

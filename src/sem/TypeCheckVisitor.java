@@ -350,12 +350,14 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			return null;
 		}
 
+		//v.structType = (StructType) structType;
+
 		String structName = ((StructType) structType).struct_Name;
 		if(!structMap.keySet().contains(structName)){
 			error("Undeclared Struct Type!");
 		}
 		StructTypeDecl thisStructDecl = structMap.get(structName);
-
+		//v.structTypeDecl = thisStructDecl;
 		boolean isFiled = false;
 		Type resultType = null;
 
