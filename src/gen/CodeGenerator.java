@@ -921,9 +921,20 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitReturn(Return v) {
+
+        if(isMain){
+            currentList.add("li " + Register.v0.toString() + ", 10");
+            currentList.add("syscall");
+        }
+
+        if(v.expr == null) {
+            currentList.add("jr $" + Register.ra.toString());
+            return Register.v0;
+        }
         Register register = v.expr.accept(this);
         currentList.add("move  " + Register.v0.toString() + ", " + register.toString());
         freeRegister(register);
+        currentList.add("jr $" + Register.ra.toString());
         return  Register.v0;
     }
 }
