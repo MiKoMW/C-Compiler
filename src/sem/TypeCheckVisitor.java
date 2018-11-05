@@ -494,6 +494,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			error("Assign left hand side and right hand side types do not match!");
 			return null;
 		}
+		v.assignType = lhs_type;
 		return null;
 	}
 
