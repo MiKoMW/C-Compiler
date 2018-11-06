@@ -8,6 +8,7 @@ public class Return extends Stmt{
         this.expr = expr;
     }
 
+    public Type returnType;
     public Return(){
         this(null);
     }

@@ -10,6 +10,8 @@ public class FunCallExpr extends Expr{
 
     public FunDecl funDecl;
 
+    public int stack_offset;
+
     public FunCallExpr(String name, List<Expr> params){
         this.fun_name = name;
         this.params = params;

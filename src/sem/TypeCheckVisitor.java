@@ -518,6 +518,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 
 		if(checkType(return_type,funcType)){
+			v.returnType = return_type;
 			return return_type;
 		}
 

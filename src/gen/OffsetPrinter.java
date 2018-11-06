@@ -140,9 +140,7 @@ public class OffsetPrinter implements ASTVisitor<Void> {
         }else{
             buf.add("OffSet : " + vd.stack_offset);
         }
-        if(vd.atRegister != null){
-            buf.add(vd.atRegister.toString());
-        }
+
 
 
         writer.print(","+vd.varName);
@@ -164,9 +162,7 @@ public class OffsetPrinter implements ASTVisitor<Void> {
         }else{
             buf.add("OffSet : " + v.vd.stack_offset);
         }
-        if(v.vd.atRegister != null){
-            buf.add(v.vd.atRegister.toString());
-        }
+
 
         return null;
     }

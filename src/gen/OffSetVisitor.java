@@ -64,7 +64,13 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 con+=4;
             } else if(varDecl.var_type instanceof ArrayType){
                 if(((ArrayType)varDecl.var_type).elem_type == BaseType.CHAR){
-                    con += ((ArrayType)varDecl.var_type).size * 4;
+                    // if char, we make it word aligned! 目测是对的。
+                    int temp = ((ArrayType)varDecl.var_type).size;
+                    if((temp % 4) != 0){
+                        temp -= (temp % 4);
+                        temp += 8;
+                    }
+                    con += temp;
                 }else if(((ArrayType)varDecl.var_type).elem_type instanceof StructType){
 
                     StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) varDecl.var_type).elem_type).struct_Name);
@@ -73,6 +79,11 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                         System.err.println("Something must be wrong!!");
                         return null;
                     }
+
+                    if((structInfo.size % 4) != 0){
+                        System.err.println("Struct type size not correct. Should be word aligned!");
+                    }
+
                     con += structInfo.size * ((ArrayType)varDecl.var_type).size;
                 }else {
                     con += ((ArrayType)varDecl.var_type).size * 4;
@@ -81,9 +92,7 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
                 con += 4;
             }
         }
-
         strcutInfos.put(type,new StructInfo(type,con,innerVars,typeHashMap));
-
         return con;
     }
 
@@ -112,33 +121,23 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
     public Integer visitFunDecl(FunDecl p) {
 
         current_Stack_offset = 0;
-        int reg_count = 0;
 
+        int param_offset = 4;
         for(VarDecl varDecl : p.params){
             if(varDecl.var_type instanceof StructType){
                 varDecl.isStatic = false;
-                varDecl.atRegister = null;
-                varDecl.stack_offset = current_Stack_offset;
                 varDecl.memo_size = strcutInfos.get(((StructType) varDecl.var_type).struct_Name).size;
-                //int temp_size = strcutInfos.get(((StructType) varDecl.var_type).struct_Name).size;
-
-                current_Stack_offset += varDecl.memo_size;
-
-            }else if(reg_count < 4){
-                Register temp_reg = Register.paramRegs[reg_count];
-                varDecl.isStatic = false;
-                varDecl.atRegister = temp_reg;
-                reg_count++;
+                varDecl.stack_offset = param_offset;
+                param_offset += varDecl.memo_size;
             }else{
                 varDecl.isStatic = false;
-                varDecl.atRegister = null;
-                varDecl.stack_offset = current_Stack_offset;
+                varDecl.stack_offset = param_offset;
                 //这不太对。到时候改。反正这个class不做offset的工作。
                 varDecl.memo_size = 4;
-                current_Stack_offset += varDecl.memo_size;
+                param_offset += varDecl.memo_size;
             }
-
         }
+
 
         current_Stack_offset += p.block.accept(this);
 
@@ -181,12 +180,18 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
 
             String structName = ((StructType) vd.var_type).struct_Name;
             vd.memo_size = strcutInfos.get(structName).size;
+
         } else if (vd.var_type instanceof ArrayType) {
 
             int size = ((ArrayType) vd.var_type).size;
 
             if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
-                vd.memo_size = size * 4;
+                int temp = size;
+                if((temp % 4) != 0){
+                    temp -= (temp % 4);
+                    temp += 8;
+                }
+                vd.memo_size = temp;
             } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
 
                 StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
@@ -199,21 +204,14 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
             } else {
                 vd.memo_size = size * 4;
             }
-        } else if (vd.var_type == BaseType.CHAR) {
-            vd.memo_size = 4;
         } else {
             vd.memo_size = 4;
         }
 
-        if(globalLevel) {
-            vd.isStatic = true;
-        }else {
-            vd.isStatic = false;
+        vd.isStatic = globalLevel;
 
-            //vd.stack_offset = current_Stack_offset;
-            //current_Stack_offset +=  vd.memo_size;
-
-        }
+        //vd.stack_offset = current_Stack_offset;
+        //current_Stack_offset +=  vd.memo_size;
 
         return vd.memo_size;
 
@@ -240,7 +238,12 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
         int size = v.size;
 
         if (v.elem_type == BaseType.CHAR) {
-            return size * 4;
+            int temp = size;
+            if((temp % 4) != 0){
+                temp -= (temp % 4);
+                temp += 8;
+            }
+            return temp;
         } else if (v.elem_type instanceof StructType) {
 
             StructInfo structInfo = strcutInfos.get(((StructType) v.elem_type).struct_Name);
@@ -262,12 +265,17 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
 
     @Override
     public Integer visitStrLiteral(StrLiteral v) {
-        return v.value.length()*4;
+        int temp = v.value.length();
+        if((temp % 4) != 0){
+            temp -= (temp % 4);
+            temp += 8;
+        }
+        return temp;
     }
 
     @Override
     public Integer visitChrLiteral(ChrLiteral v) {
-        return 1;
+        return 4;
     }
 
     @Override
@@ -360,5 +368,4 @@ public class OffSetVisitor implements ASTVisitor<Integer> {
         v.expr.accept(this);
         return 0;
     }
-
 }
