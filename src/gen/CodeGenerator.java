@@ -76,14 +76,13 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     private int current_Stack_offset;
 
-
     private void init(Program program){
 
         stastic_data.add(".data");
         stastic_data.add(".align 2");
 
         funOut.add(".text");
-        funOut.add("j main");
+        //funOut.add("j main");
 
         mainFun.add(".globl main");
         mainFun.add("main:");
