@@ -111,9 +111,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
         output.addAll(stastic_data);
         output.addAll(funOut);
         //System.out.println(mainFun.size());indfsa
+        /*
         if (mainFun.size() < 2){
             mainFun.add("main:");
-        }
+        }*/
         output.addAll(mainFun);
 
 
