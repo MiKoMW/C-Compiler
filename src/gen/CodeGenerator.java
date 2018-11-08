@@ -947,7 +947,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         if(v.lhs instanceof VarExpr) {
             if (((VarExpr) v.lhs).vd.isStatic) {
                 lhsReg = getRegister();
-                currentList.add("la  " + lhsReg.toString() + ", " + ((VarExpr) v.lhs).name);lhsReg = v.lhs.accept(this);
+                currentList.add("la  " + lhsReg.toString() + ", " + ((VarExpr) v.lhs).name);
             } else {
                 lhsReg = getRegister();
                 currentList.add("la  " + lhsReg.toString() + ", " + -((VarExpr) v.lhs).vd.stack_offset + "(" + Register.fp + ")");
