@@ -132,7 +132,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     private boolean globalLevel;
 
-    // ============================================================================================= 这个先写funcall在写。
 
     // 从fp开始。
     private void saveAllRegister(){
@@ -164,6 +163,102 @@ public class CodeGenerator implements ASTVisitor<Register> {
         }
 
         currentList.add("move $sp, $fp");
+
+    }
+
+
+    public Register genLibFun(FunCallExpr v){
+
+        for (Register register : Register.tmpRegs) {
+            currentList.add("addi " + "$sp, $sp, -4");
+            currentList.add("sw " + register.toString() + ", " + "0($sp)");
+        }
+
+
+
+        Register ans = getRegister();
+
+        if(v.fun_name.equals("read_c")) {
+            currentList.add("li $v0, 12\nsyscall");
+            currentList.add("move " + ans.toString() + ", " + Register.v0);
+        } else if(v.fun_name.equals("read_i")){
+            currentList.add("li $v5, 12\nsyscall");
+            currentList.add("move " + ans.toString() + ", " + Register.v0);
+        } else if(v.fun_name.equals("mcmalloc")){
+            Register temp = v.params.get(0).accept(this);
+            currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
+            freeRegister(temp);
+            currentList.add("li $v5, 12\nsyscall");
+            currentList.add("li $v0, 9\nsyscall");
+            currentList.add("move " + ans.toString() + ", " + Register.v0);
+        } else if(v.fun_name.equals("print_s")){
+            Register temp = v.params.get(0).accept(this);
+            currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
+            freeRegister(temp);
+            currentList.add("li $v0, 4\nsyscall");
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, -4");
+                currentList.add("lw " + register.toString() + ", " + "0($sp)");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            freeRegister(ans);
+            return null;
+        } else if(v.fun_name.equals("print_i")){
+            Register temp = v.params.get(0).accept(this);
+            currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
+            freeRegister(temp);
+            currentList.add("li $v0, 1\nsyscall");
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, -4");
+                currentList.add("lw " + register.toString() + ", " + "0($sp)");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            freeRegister(ans);
+            return null;
+        } else if(v.fun_name.equals("print_c")){
+            Register temp = v.params.get(0).accept(this);
+            currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
+            freeRegister(temp);
+            currentList.add("li $v0, 11\nsyscall");
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, -4");
+                currentList.add("lw " + register.toString() + ", " + "0($sp)");
+            }
+            for (Register register : Register.tmpRegs) {
+                currentList.add("addi " + "$sp, $sp, 4");
+            }
+            freeRegister(ans);
+            return null;
+        }
+
+
+
+        for (Register register : Register.tmpRegs) {
+            currentList.add("addi " + "$sp, $sp, 4");
+        }
+        for (Register register : Register.tmpRegs) {
+            currentList.add("addi " + "$sp, $sp, -4");
+            currentList.add("lw " + register.toString() + ", " + "0($sp)");
+        }
+        for (Register register : Register.tmpRegs) {
+            currentList.add("addi " + "$sp, $sp, 4");
+        }
+
+        return ans;
+
 
     }
 
@@ -228,16 +323,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
             cur_List.add(p.name + ":");
         }
 
-        //==========================================================================================Libfun 到时候写。
-        /*if(lib_fun.containsKey(p.name)){
-            int temp = 0;
-            for(VarDecl varDecl : p.params){
-                varDecl.atRegister = Register.paramRegs[temp++];
-            }
+        if(lib_fun.containsKey(p.name)) {
             cur_List.add(lib_fun.get(p.name));
-            currentList.add("jr " + Register.ra.toString());
+            cur_List.add("jr " + Register.ra.toString());
             return null;
-        }*/
+        }
 
 
         //这个得思考下？
@@ -280,9 +370,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         } else {
             currentList.add("EndFun_" + p.name+ ":");
         }
-
         return Register.v0;
-
     }
 
     @Override
@@ -517,13 +605,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         FunDecl funDecl = v.funDecl;
         // Lib_function 一会写！！
-        /*
-        if(lib_fun.containsKey(v.fun_name)){
-            if(v.fun_name.equals("read_c") || v.fun_name.equals("read_i")){}else
-                currentList.add("move " + Register.paramRegs[0] + " , " + v.params.get(temp).accept(this).toString());
-        }else{*/
 
-        Type returnType = funDecl.fun_type;
+
+        if(lib_fun.containsKey(v.fun_name)){
+            return genLibFun(v);
+        }
+            Type returnType = funDecl.fun_type;
 
         if(returnType == BaseType.VOID) {
 
