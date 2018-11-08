@@ -567,7 +567,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 param_Szie += size;
             }else{
                 currentList.add("addi $sp, $sp, -4");
-                currentList.add("sw " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
+                if(type == BaseType.CHAR){
+                    currentList.add("sb " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
+                }else {
+                    currentList.add("sw " + register.toString() + ", " + "(" + Register.sp.toString() + ")");
+                }
                 freeRegister(register);
                 param_Szie += 4;
             }
@@ -711,7 +715,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
         currentList.add("addi " + ans.toString() + ", " + offset);
 
         if(!(type instanceof StructType || type instanceof ArrayType)){
-            currentList.add("lw " + ans.toString() + ", " + ans.toString());
+            if(type == BaseType.CHAR){
+                currentList.add("lb " + ans.toString() + ", " + ans.toString());
+            }else {
+                currentList.add("lw " + ans.toString() + ", " + ans.toString());
+            }
         }
 
         freeRegister(struct);
