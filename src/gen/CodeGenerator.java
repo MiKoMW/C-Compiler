@@ -56,7 +56,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     // Utility Function below.
 
 
-    private boolean globalLevel;
+    //private boolean globalLevel;
 
     // Buffer the output.
     private ArrayList<String> output = new ArrayList<>();
@@ -86,13 +86,15 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         mainFun.add(".globl main");
         mainFun.add("main:");
-        mainFun.add("move $fp, $sp");
+       // mainFun.add("move $fp, $sp");
 
         current_Stack_offset = 0;
         OffSetVisitor offSetVisitor = new OffSetVisitor();
         offSetVisitor.visitProgram(program);
         this.strcutInfos = offSetVisitor.getStrcutInfos();
         lab_con = 0;
+
+        globalLevel = true;
 
         // =========================================================================================改了parameter后可能会存在问题！！！！
         lib_fun.put("print_s","li $v0, 4\nsyscall");
@@ -117,7 +119,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
         }*/
         output.addAll(mainFun);
 
-
         // 这个有问题！！！！！
         output.add("li " + Register.v0.toString() + ", 10");
         output.add("syscall");
@@ -128,6 +129,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
     }
 
     private Stack<Stack<Register>> registerHistory = new Stack<>();
+
+    private boolean globalLevel;
 
     // ============================================================================================= 这个先写funcall在写。
     private void saveAllRegister(){
@@ -142,36 +145,39 @@ public class CodeGenerator implements ASTVisitor<Register> {
         for (Register register : Register.tmpRegs) {
             currentList.add("sw " + register.toString() + ", " + "0($sp)");
             currentList.add("addi " + "$sp, $sp, -4");
+            current_Stack_offset += 4;
         }
 
         for(Register register : Register.paramRegs){
             currentList.add("sw " + register.toString() + ", " + "0($sp)");
             currentList.add("addi " + "$sp, $sp, -4");
+            current_Stack_offset += 4;
+
         }
 
         Register register = Register.gp;
         currentList.add("sw " + register.toString() + ", " + "0($sp)");
         currentList.add("addi " + "$sp, $sp, -4");
+        current_Stack_offset += 4;
+
 
         register = Register.ra;
         currentList.add("sw " + register.toString() + ", " + "0($sp)");
         currentList.add("addi " + "$sp, $sp, -4");
+        current_Stack_offset += 4;
+
 
         register = Register.fp;
         currentList.add("sw " + register.toString() + ", " + "0($sp)");
         currentList.add("addi " + "$sp, $sp, -4");
-
-        current_Stack_offset += 100;
-        //currentList.add("move $fp, $sp");
+        current_Stack_offset += 4;
 
     }
 
     private void loadAllRegisters(){
         freeRegs = registerHistory.pop();
 
-        //currentList.add("move $sp, $fp");
-        int tempIdx = 25 * 4;
-        currentList.add("addi " + "$sp, $sp, " + tempIdx);
+        currentList.add("move $sp, $fp");
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
@@ -196,8 +202,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
         register = Register.fp;
         currentList.add("lw " + register.toString() + ", " + "0($sp)");
         currentList.add("addi " + "$sp, $sp, -4");
+        currentList.add("move $sp, $fp");
 
-        current_Stack_offset -= 100;
+        //current_Stack_offset -= 100;
 
     }
 
@@ -215,7 +222,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitStructTypeDecl(StructTypeDecl st) {
-        // do it in offset visitor!
+        // done it in offset visitor!
         return null;
     }
 
@@ -270,33 +277,39 @@ public class CodeGenerator implements ASTVisitor<Register> {
         int params_size = 0;
 
         currentList.add("move $fp, $sp");
+
         for(VarDecl varDecl : p.params){
             varDecl.isStatic = false;
             //varDecl.accept(this);
-            current_Stack_offset += 4;
             varDecl.stack_offset = current_Stack_offset;
-            params_size +=4;
+            current_Stack_offset += varDecl.memo_size;
+            varDecl.stack_offset = current_Stack_offset - 4;
+
+            params_size += varDecl.memo_size;
         }
+
         for(VarDecl varDecl : p.params){
             varDecl.stack_offset -= params_size;
         }
 
-        p.param_size = -current_Stack_offset;
+        p.param_size = params_size;
 
         current_Stack_offset = 0;
 
         saveAllRegister();
 
         p.block.accept(this);
-        currentList.add("move $sp, $fp");
 
-        loadAllRegisters();
+        //currentList.add("move $sp, $fp");
 
         if(!isMain) {
             currentList.add("EndFun_" + p.name+ ":");
             currentList.add("jr " + Register.ra.toString());
+            loadAllRegisters();
+            currentList.add("addi " + "$sp, $sp, " + params_size);
         } else {
             currentList.add("EndFun_" + p.name+ ":");
+
         }
 
         return null;
@@ -411,7 +424,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                     int temp = size;
                     if((temp % 4) != 0){
                         temp -= (temp % 4);
-                        temp += 8;
+                        temp += 4;
                     }
                     vd.memo_size = temp;
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + temp);
@@ -444,6 +457,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
                 vd.memo_size = 4;
                 current_Stack_offset += 4;
+                vd.stack_offset = current_Stack_offset - 4;
             }
         }
 
