@@ -790,15 +790,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
     // mips这没啥用吧？
     @Override
     public Register visitTypecastExpr(TypecastExpr v) {
-        // 我就要这么写！：）
-        Register ans = v.expr.accept(this);
-        return ans;
+        return v.expr.accept(this);
     }
 
     @Override
     public Register visitExprStmt(ExprStmt v) {
-        Register ans = v.expr.accept(this);
-        return ans;
+        return v.expr.accept(this);
     }
 
     @Override
@@ -887,31 +884,21 @@ public class CodeGenerator implements ASTVisitor<Register> {
             Register arr = ((ArrayAccessExpr) v.lhs).array.accept(this);
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
-            boolean isStatic = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.isStatic;
             Type type = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.var_type;
 
             if (type instanceof StructType) {
                 int size = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.memo_size;
-                Register temp = getRegister();
+
                 currentList.add("move " + lhsReg.toString() + ", " + arr.toString());
-                currentList.add("li " + temp.toString() + ",  4");
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                currentList.add("li " + temp.toString() + ",  " + size);
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                freeRegister(temp);
+                currentList.add("li " + arr.toString() + ", " + size);
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + arr.toString());
                 currentList.add("add " + lhsReg.toString() + ", " + lhsReg.toString() + ", " + idx.toString());
             } else if(type == BaseType.CHAR){
-                Register temp = getRegister();
-                currentList.add("move " + lhsReg.toString() + ", " + arr.toString());
-                freeRegister(temp);
-                currentList.add("add " + lhsReg.toString() + ", " + lhsReg.toString() + ", " + idx.toString());
-
+                currentList.add("add " + lhsReg.toString() + ", " + arr.toString() + ", " + idx.toString());
             } else{
-                Register temp = getRegister();
                 currentList.add("move " + lhsReg.toString() + ", " + arr.toString());
-                currentList.add("li " + temp.toString() + ",  4");
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                freeRegister(temp);
+                currentList.add("li " + arr.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + arr.toString());
                 currentList.add("add " + lhsReg.toString() + ", " + lhsReg.toString() + ", " + idx.toString());
             }
             freeRegister(arr);
@@ -920,23 +907,19 @@ public class CodeGenerator implements ASTVisitor<Register> {
             lhsReg = ((ValueAtExpr) v.lhs).expr.accept(this);
         }
 
+        //====================上面的都是地址！！
 
         if(v.assignType == BaseType.CHAR){
             currentList.add("sb  " + rhsReg.toString() + ", (" + lhsReg.toString() + ")");
         } else if(v.assignType instanceof StructType){
             StructInfo structInfo = strcutInfos.get(((StructType)v.assignType).struct_Name);
             int structSize = structInfo.size;
-            for(int con = 0; con < structSize; con++){
-                currentList.add("sw  " + rhsReg.toString() + ", (" + lhsReg.toString() + ")");
-                currentList.add("addi  " + rhsReg.toString() + ", 1");
-                currentList.add("addi  " + lhsReg.toString() + ", 1");
-            }
+            copyValue(rhsReg,lhsReg,structSize);
         } else {
             currentList.add("sw  " + rhsReg.toString() + ", (" + lhsReg.toString()+")");
         }
         freeRegister(lhsReg);
         freeRegister(rhsReg);
-
         return null;
     }
 
@@ -958,14 +941,19 @@ public class CodeGenerator implements ASTVisitor<Register> {
         //currentList.add("move " + Register.v0.toString() + ", " + expr.toString());
 
         int param_size = v.funDecl.param_size;
-        currentList.add("la " + Register.v0 + ", " + param_size +"("  + expr.toString() + ")");
+        currentList.add("move " + Register.v0 + ", "  + Register.fp.toString());
+        currentList.add("addi " + Register.v0 + ", " + 8 + param_size);
 
         if (type instanceof StructType) {
             StructInfo structInfo = strcutInfos.get(((StructType)type).struct_Name);
             int structSize = structInfo.size;
             copyValue(expr,Register.v0,structSize);
         } else {
-            currentList.add("sw " + expr.toString() + ", " + Register.v0);
+            if(type == BaseType.CHAR){
+                currentList.add("sb " + expr.toString() + ", " + Register.v0);
+            }else {
+                currentList.add("sw " + expr.toString() + ", " + Register.v0);
+            }
         }
         freeRegister(expr);
         currentList.add("jr " + Register.ra.toString());
