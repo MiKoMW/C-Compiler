@@ -183,7 +183,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
             currentList.add("li $v0, 12\nsyscall");
             currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("read_i")){
-            currentList.add("li $v0, 12\nsyscall");
+            currentList.add("li $v0, 5\nsyscall");
             currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("mcmalloc")){
             Register temp = v.params.get(0).accept(this);
