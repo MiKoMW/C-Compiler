@@ -133,6 +133,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
     private boolean globalLevel;
 
     // ============================================================================================= 这个先写funcall在写。
+
+    // 从fp开始。
     private void saveAllRegister(){
 
         Stack<Register> freeRegs_temp = new Stack<Register>();
@@ -143,34 +145,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
-            currentList.add("sw " + register.toString() + ", " + "0($sp)");
             currentList.add("addi " + "$sp, $sp, -4");
+            currentList.add("sw " + register.toString() + ", " + "0($sp)");
             current_Stack_offset += 4;
         }
-
-        for(Register register : Register.paramRegs){
-            currentList.add("sw " + register.toString() + ", " + "0($sp)");
-            currentList.add("addi " + "$sp, $sp, -4");
-            current_Stack_offset += 4;
-
-        }
-
-        Register register = Register.gp;
-        currentList.add("sw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-        current_Stack_offset += 4;
-
-
-        register = Register.ra;
-        currentList.add("sw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-        current_Stack_offset += 4;
-
-
-        register = Register.fp;
-        currentList.add("sw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-        current_Stack_offset += 4;
 
     }
 
@@ -181,34 +159,28 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         // saving all temp register/
         for (Register register : Register.tmpRegs) {
-            currentList.add("lw " + register.toString() + ", " + "0($sp)");
             currentList.add("addi " + "$sp, $sp, -4");
+            currentList.add("lw " + register.toString() + ", " + "0($sp)");
         }
 
-        for(Register register : Register.paramRegs){
-            currentList.add("lw " + register.toString() + ", " + "0($sp)");
-            currentList.add("addi " + "$sp, $sp, -4");
-        }
-
-
-        Register register = Register.gp;
-        currentList.add("lw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-
-        register = Register.ra;
-        currentList.add("lw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
-
-        register = Register.fp;
-        currentList.add("lw " + register.toString() + ", " + "0($sp)");
-        currentList.add("addi " + "$sp, $sp, -4");
         currentList.add("move $sp, $fp");
-
-        //current_Stack_offset -= 100;
 
     }
 
-    int saved_reg_space = 25*4;
+
+    // This function emis codes for moving values from one position to another position with size.
+    public void copyValue(Register from, Register to, int size){
+
+        Register temp = getRegister();
+
+        for(int con = 0; con < size; con++){
+            currentList.add("lb  " + temp.toString() + ", " + con + "(" + from.toString() + ")");
+            currentList.add("sb  " + temp.toString() + ", " + con + "(" + to.toString() + ")");
+        }
+
+        freeRegister(temp);
+
+    }
 
 
     // Utility Function above.
@@ -243,8 +215,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitFunDecl(FunDecl p) {
 
+
         ArrayList<String> cur_List;
-        Type returnType = p.fun_type;
+        //Type returnType = p.fun_type;
 
         current_Stack_offset = 0;
 
@@ -254,8 +227,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
             cur_List = funOut;
             cur_List.add(p.name + ":");
         }
-
-
 
         //==========================================================================================Libfun 到时候写。
         /*if(lib_fun.containsKey(p.name)){
@@ -283,16 +254,16 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //varDecl.accept(this);
             varDecl.stack_offset = current_Stack_offset;
             current_Stack_offset += varDecl.memo_size;
-            varDecl.stack_offset = current_Stack_offset - 4;
-
             params_size += varDecl.memo_size;
         }
 
+        p.param_size = params_size;
+
         for(VarDecl varDecl : p.params){
-            varDecl.stack_offset -= params_size;
+            params_size -= varDecl.memo_size;
+            varDecl.stack_offset = -params_size;
         }
 
-        p.param_size = params_size;
 
         current_Stack_offset = 0;
 
@@ -304,15 +275,13 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         if(!isMain) {
             currentList.add("EndFun_" + p.name+ ":");
-            currentList.add("jr " + Register.ra.toString());
             loadAllRegisters();
-            currentList.add("addi " + "$sp, $sp, " + params_size);
+            currentList.add("jr " + Register.ra.toString());
         } else {
             currentList.add("EndFun_" + p.name+ ":");
-
         }
 
-        return null;
+        return Register.v0;
 
     }
 
@@ -369,7 +338,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                     int temp = size;
                     if((temp % 4) != 0){
                         temp -= (temp % 4);
-                        temp += 8;
+                        temp += 4;
                     }
                     vd.memo_size = temp;
                     stastic_data.add(vd.varName + ": .space " + temp);
@@ -398,7 +367,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
             }
         } else{
 
-            //Dynamic
             // addi $sp , $sp, -4
             if(isMain){
                 currentList = mainFun;
@@ -414,7 +382,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + strcutInfos.get(structName).size);
                 vd.memo_size = strcutInfos.get(structName).size;
                 current_Stack_offset += strcutInfos.get(structName).size;
-                vd.stack_offset = current_Stack_offset - 4;
+                vd.stack_offset = current_Stack_offset;
 
             } else if (vd.var_type instanceof ArrayType) {
 
@@ -429,7 +397,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                     vd.memo_size = temp;
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + temp);
                     current_Stack_offset += temp;
-                    vd.stack_offset = current_Stack_offset - 4;
+                    vd.stack_offset = current_Stack_offset;
 
                 } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
                     StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
@@ -446,18 +414,18 @@ public class CodeGenerator implements ASTVisitor<Register> {
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  structInfo.size * size);
                     current_Stack_offset += structInfo.size * size;
                     vd.memo_size = structInfo.size * size;
-                    vd.stack_offset = current_Stack_offset - 4;
+                    vd.stack_offset = current_Stack_offset;
                 } else {
                     currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  size * 4);
                     vd.memo_size = 4 * size;
                     current_Stack_offset += size * 4;
-                    vd.stack_offset = current_Stack_offset - 4;
+                    vd.stack_offset = current_Stack_offset;
                 }
             } else {
                 currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
                 vd.memo_size = 4;
                 current_Stack_offset += 4;
-                vd.stack_offset = current_Stack_offset - 4;
+                vd.stack_offset = current_Stack_offset;
             }
         }
 
@@ -544,14 +512,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
         return result;
     }
 
-    // 这个不对
     @Override
     public Register visitFunCallExpr(FunCallExpr v) {
 
-        // save temp register.
-
         FunDecl funDecl = v.funDecl;
-
         // Lib_function 一会写！！
         /*
         if(lib_fun.containsKey(v.fun_name)){
@@ -565,75 +529,69 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         }
         else if (returnType instanceof StructType) {
-
                 String structName = ((StructType) returnType).struct_Name;
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + strcutInfos.get(structName).size);
+                currentList.add("addi  " + Register.sp.toString() + ", -" + strcutInfos.get(structName).size);
                 funDecl.return_Size = strcutInfos.get(structName).size;
                 current_Stack_offset += strcutInfos.get(structName).size;
-                v.stack_offset = current_Stack_offset - 4;
-
-        } else if (returnType instanceof ArrayType) {
-
-                int size = ((ArrayType) returnType).size;
-
-                if (((ArrayType) returnType).elem_type == BaseType.CHAR) {
-                    int temp = size;
-                    if((temp % 4) != 0){
-                        temp -= (temp % 4);
-                        temp += 8;
-                    }
-                    funDecl.return_Size = temp;
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + temp);
-                    current_Stack_offset += temp;
-                    v.stack_offset = current_Stack_offset - 4;
-
-                } else if (((ArrayType) returnType).elem_type instanceof StructType) {
-                    StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) returnType).elem_type).struct_Name);
-
-                    if (structInfo == null) {
-                        System.err.println("Something must be wrong!!");
-                        return null;
-                    }
-
-                    if((structInfo.size) % 4 != 0){
-                        System.err.println("Struct size is not right for array!");
-                    }
-
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  structInfo.size * size);
-                    current_Stack_offset += structInfo.size * size;
-                    funDecl.return_Size = structInfo.size * size;
-                    v.stack_offset = current_Stack_offset - 4;
-                } else {
-                    currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  size * 4);
-                    funDecl.return_Size = 4 * size;
-                    current_Stack_offset += size * 4;
-                    v.stack_offset = current_Stack_offset - 4;
-                }
+                v.stack_offset = current_Stack_offset;
         } else {
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
+                currentList.add("addi  " + Register.sp.toString() + ", -" +  4);
                 funDecl.return_Size = 4;
                 current_Stack_offset += 4;
+                v.stack_offset = current_Stack_offset;
         }
+        int pre_stack_offset = current_Stack_offset;
 
-        Register ans = getRegister();
-        currentList.add("la  " + ans.toString() + ", -" + v.stack_offset + "(" + (Register.fp.toString())+")");
+
+        currentList.add("addi  " + Register.sp.toString() + ", -" +  4);
+        currentList.add("sw $ra, (" + Register.sp.toString()+")");
+        currentList.add("addi  " + Register.sp.toString() + ", -" +  4);
+        currentList.add("sw "+ Register.fp + ", (" + Register.sp.toString()+")");
+        currentList.add("addi $sp, $sp, -4");
 
         int param_Szie = 0;
+        int con = 0;
         for(Expr expr : v.params){
+
             Register register = expr.accept(this);
-            currentList.add("sw " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
-            currentList.add("addi $sp, $sp, -4");
-            freeRegister(register);
-            param_Szie += 4;
+            Type type = v.params.get(con).type;
+            con++;
+
+            if(type instanceof StructType){
+                StructInfo structInfo = strcutInfos.get(((StructType) type).struct_Name);
+                int size = structInfo.size;
+                currentList.add("addi $sp, $sp, -" + (size));
+
+                copyValue(register,Register.sp,size);
+                freeRegister(register);
+                param_Szie += size;
+            }else{
+                currentList.add("addi $sp, $sp, -4");
+                currentList.add("sw " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
+                freeRegister(register);
+                param_Szie += 4;
+            }
         }
 
-        currentList.add("sw $ra, (" + Register.sp.toString()+")");
-        currentList.add("addi $sp, $sp, -4");
         currentList.add("jal " + v.fun_name);
 
-
+        currentList.add("move " + Register.sp.toString() + ", " + Register.fp.toString());
+        currentList.add("lw "+ Register.fp + ", (" + Register.sp.toString()+")");
+        currentList.add("addi  " + Register.sp.toString() + ", " +  4);
+        currentList.add("lw $ra, (" + Register.sp.toString()+")");
+        currentList.add("addi  " + Register.sp.toString() + ", " +  4);
         param_Szie = v.funDecl.param_size;
-        currentList.add("addi $sp, $sp, " + param_Szie);
+
+        Register ans = getRegister();
+        currentList.add("move " + ans.toString() + ", " + Register.sp.toString());
+        if(returnType == BaseType.VOID) {
+            freeRegister(ans);
+            return null;
+        }
+        else if (returnType instanceof StructType) {
+        } else {
+            currentList.add("lw " + ans.toString() + ", " + ans.toString());
+        }
 
         return ans;
     }
@@ -706,44 +664,32 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Register arr = v.array.accept(this);
         Register idx = v.index.accept(this);
 
-        boolean isStatic = ((VarExpr) v.array).vd.isStatic;
         Type type = ((VarExpr) v.array).vd.var_type;
 
         if (type instanceof StructType) {
                 int size = ((VarExpr) v.array).vd.memo_size;
-                Register temp = getRegister();
                 currentList.add("move " + ans.toString() + ", " + arr.toString());
-                currentList.add("li " + temp.toString() + ",  4");
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                currentList.add("li " + temp.toString() + ",  " + size);
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                freeRegister(temp);
+                currentList.add("li " + arr.toString() + ",  " + size);
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + arr.toString());
                 currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
         } else if(type == BaseType.CHAR){
-                Register temp = getRegister();
                 currentList.add("move " + ans.toString() + ", " + arr.toString());
-                freeRegister(temp);
                 currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
                 currentList.add("lb " + ans.toString() + ", " + ans.toString());
 
         } else{
-                Register temp = getRegister();
                 currentList.add("move " + ans.toString() + ", " + arr.toString());
-                currentList.add("li " + temp.toString() + ",  4");
-                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + temp.toString());
-                freeRegister(temp);
+                currentList.add("li " + arr.toString() + ",  4");
+                currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + arr.toString());
                 currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
                 currentList.add("lw " + ans.toString() + ", " + ans.toString());
-
         }
-
-
         freeRegister(arr);
         freeRegister(idx);
         return ans;
     }
 
-    // 这货就应该返还pointer！ 这东西register里面是address。
+
     @Override
     public Register visitFieldAccessExpr(FieldAccessExpr v) {
 
@@ -760,8 +706,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Type type = structInfo.typeMapping.get(structName);
 
 
+
         currentList.add("move " + ans.toString() + ", " + struct.toString());
         currentList.add("addi " + ans.toString() + ", " + offset);
+
         if(!(type instanceof StructType || type instanceof ArrayType)){
             currentList.add("lw " + ans.toString() + ", " + ans.toString());
         }
@@ -986,144 +934,34 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitReturn(Return v) {
-        /*
+
         if(isMain){
             currentList.add("li " + Register.v0.toString() + ", 10");
             currentList.add("syscall");
         }
 
-
         Type type = v.returnType;
-
         if(v.expr == null) {
-            currentList.add("jr $" + Register.ra.toString());
+            currentList.add("jr " + Register.ra.toString());
             return Register.v0;
         }
 
-
         Register expr = v.expr.accept(this);
+        //currentList.add("move " + Register.v0.toString() + ", " + expr.toString());
 
-        currentList.add("move " + Register.v0.toString() + ", " + Register.sp);
+        int param_size = v.funDecl.param_size;
+        currentList.add("la " + Register.v0 + ", " + param_size +"("  + expr.toString() + ")");
 
         if (type instanceof StructType) {
             StructInfo structInfo = strcutInfos.get(((StructType)type).struct_Name);
             int structSize = structInfo.size;
-            for(int con = 0; con < structSize; con++){
-                currentList.add("lb  " + temp_reg.toString() + ", (" + from.toString() + ")");
-                currentList.add("sb  " + temp_reg.toString() + ", (" + to.toString() + ")");
-                currentList.add("addi  " + from.toString() + ", 1");
-                currentList.add("addi  " + to.toString() + ", 1");
-            }
-
-        } else if (vd.var_type instanceof ArrayType) {
-
-            int size = ((ArrayType) vd.var_type).size;
-
-            if (((ArrayType) vd.var_type).elem_type == BaseType.CHAR) {
-                int temp = size;
-                if((temp % 4) != 0){
-                    temp -= (temp % 4);
-                    temp += 8;
-                }
-                vd.memo_size = temp;
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" + temp);
-                current_Stack_offset += temp;
-                vd.stack_offset = current_Stack_offset - 4;
-
-            } else if (((ArrayType) vd.var_type).elem_type instanceof StructType) {
-                StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) vd.var_type).elem_type).struct_Name);
-
-                if (structInfo == null) {
-                    System.err.println("Something must be wrong!!");
-                    return null;
-                }
-
-                if((structInfo.size) % 4 != 0){
-                    System.err.println("Struct size is not right for array!");
-                }
-
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  structInfo.size * size);
-                current_Stack_offset += structInfo.size * size;
-                vd.memo_size = structInfo.size * size;
-                vd.stack_offset = current_Stack_offset - 4;
-            } else {
-                currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  size * 4);
-                vd.memo_size = 4 * size;
-                current_Stack_offset += size * 4;
-                vd.stack_offset = current_Stack_offset - 4;
-            }
+            copyValue(expr,Register.v0,structSize);
         } else {
-            currentList.add("add  " + Register.sp.toString() + ", " + Register.sp.toString() + ", -" +  4);
-            vd.memo_size = 4;
-            current_Stack_offset += 4;
+            currentList.add("sw " + expr.toString() + ", " + Register.v0);
         }
+        freeRegister(expr);
+        currentList.add("jr " + Register.ra.toString());
+        return Register.v0;
 
     }
-
-
-
-
-
-
-
-        currentList.add("jr $" + Register.ra.toString());
-        */
-        return  Register.v0;
-    }
-
-    public void moveValue(Register from, Register to, Type type){
-
-        Register temp_reg = getRegister();
-        if(type == BaseType.VOID) {
-
-        }
-        else if (type instanceof StructType) {
-            StructInfo structInfo = strcutInfos.get(((StructType)type).struct_Name);
-            int structSize = structInfo.size;
-            for(int con = 0; con < structSize; con++){
-                currentList.add("lb  " + temp_reg.toString() + ", (" + from.toString() + ")");
-                currentList.add("sb  " + temp_reg.toString() + ", (" + to.toString() + ")");
-                currentList.add("addi  " + from.toString() + ", 1");
-                currentList.add("addi  " + to.toString() + ", 1");
-            }
-        } else if(type == BaseType.CHAR){
-            currentList.add("lb  " + temp_reg.toString() + ", (" + from.toString() + ")");
-            currentList.add("sb  " + temp_reg.toString() + ", (" + to.toString() + ")");
-        } else if (type instanceof ArrayType) {
-
-            int size = ((ArrayType) type).size;
-            if (((ArrayType) type).elem_type == BaseType.CHAR) {
-                int temp = size;
-                if((temp % 4) != 0){
-                    temp -= (temp % 4);
-                    temp += 8;
-                }
-                size = temp;
-            } else if (((ArrayType) type).elem_type instanceof StructType) {
-                StructInfo structInfo = strcutInfos.get(((StructType) ((ArrayType) type).elem_type).struct_Name);
-
-                if((structInfo.size) % 4 != 0){
-                    System.err.println("Struct size is not right for array!");
-                }
-
-                size += structInfo.size * size;
-            } else {
-                size = 4 * size;
-            }
-
-            for(int con = 0; con < size; con++){
-                currentList.add("lb  " + temp_reg.toString() + ", (" + from.toString() + ")");
-                currentList.add("sb  " + temp_reg.toString() + ", (" + to.toString() + ")");
-                currentList.add("addi  " + from.toString() + ", 1");
-                currentList.add("addi  " + to.toString() + ", 1");
-            }
-        } else {
-            currentList.add("lw  " + temp_reg.toString() + ", (" + from.toString() + ")");
-            currentList.add("sw  " + temp_reg.toString() + ", (" + to.toString() + ")");
-        }
-
-        freeRegister(temp_reg);
-
-    }
-
 }

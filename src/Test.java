@@ -1,3 +1,5 @@
+import static gen.Register.tmpRegs;
+
 public class Test
 {
     public static void main(String[] args){
@@ -8,7 +10,7 @@ public class Test
             temp -= (temp % 4);
             temp += 4;
         }
-        System.out.print(temp);
+        System.out.print(tmpRegs.size());
 
 
     }

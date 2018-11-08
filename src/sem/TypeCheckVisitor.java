@@ -12,6 +12,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	private HashMap<String, StructTypeDecl> structMap = new HashMap<>();
 
 	private Stack<Type> funDeclReturnType = new Stack<>();
+	private Stack<FunDecl> FunDecl_Return_Mapping = new Stack<>();
 
 	@Override
 	public Type visitBaseType(BaseType bt) {
@@ -66,10 +67,11 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		p.fun_type.accept(this);
 
 		funDeclReturnType.push(p.fun_type);
-
+		FunDecl_Return_Mapping.push(p);
 		p.block.accept(this);
 
 		funDeclReturnType.pop();
+		FunDecl_Return_Mapping.pop();
 
 		//思考一波？ emm 没啥毛病！
 		// Statement does not have type. But I'd like to keep it to see it is useful or not later.
@@ -501,12 +503,18 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 	public Type visitReturn(Return v){
 
 		Type funcType = null;
+		FunDecl funDecl = null;
 		if (!funDeclReturnType.empty()){
 			funcType = funDeclReturnType.peek();
 		}
 
+		if (!FunDecl_Return_Mapping.empty()){
+			funDecl = FunDecl_Return_Mapping.peek();
+		}
+
 		if(v.expr == null){
 			if(funcType == BaseType.VOID){
+				v.funDecl = funDecl;
 				return null;
 			}else {
 				error("Return does not match!");
@@ -519,10 +527,12 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 		if(checkType(return_type,funcType)){
 			v.returnType = return_type;
+			v.funDecl = funDecl;
 			return return_type;
 		}
 
 		error("Return Type does not match!");
+		v.funDecl = funDecl;
 		return null;
 
 	}

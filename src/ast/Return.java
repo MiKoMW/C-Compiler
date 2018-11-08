@@ -3,6 +3,7 @@ package ast;
 public class Return extends Stmt{
 
     public final Expr expr;
+    public FunDecl funDecl;
 
     public Return(Expr expr){
         this.expr = expr;
