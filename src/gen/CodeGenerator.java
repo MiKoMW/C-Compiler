@@ -665,7 +665,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         currentList.add("lw "+ Register.fp + ", (" + Register.sp.toString()+")");
         currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  4);
         currentList.add("lw $ra, (" + Register.sp.toString()+")");
-        //currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  4);
+        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  4);
         //param_Szie = v.funDecl.param_size;
 
         Register ans = getRegister();
@@ -1026,7 +1026,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         int param_size = v.funDecl.param_size;
         currentList.add("move " + Register.v0 + ", "  + Register.fp.toString());
-        currentList.add("addi " + Register.v0+", "+ Register.v0 + ", " + 8 + param_size);
+        currentList.add("addi " + Register.v0+", "+ Register.v0 + ", " + (8 + param_size));
 
         if (type instanceof StructType) {
             StructInfo structInfo = strcutInfos.get(((StructType)type).struct_Name);
