@@ -182,13 +182,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
             currentList.add("li $v0, 12\nsyscall");
             currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("read_i")){
-            currentList.add("li $v5, 12\nsyscall");
+            currentList.add("li $v0, 12\nsyscall");
             currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("mcmalloc")){
             Register temp = v.params.get(0).accept(this);
             currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
             freeRegister(temp);
-            currentList.add("li $v5, 12\nsyscall");
             currentList.add("li $v0, 9\nsyscall");
             currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("print_s")){
@@ -316,18 +315,21 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         current_Stack_offset = 0;
 
+
+
         if(p.name.equals("main")){
             cur_List = mainFun;
         }else{
             cur_List = funOut;
+            if(lib_fun.containsKey(p.name)) {
+                //cur_List.add(lib_fun.get(p.name));
+                //cur_List.add("jr " + Register.ra.toString());
+                return null;
+            }
+
             cur_List.add(p.name + ":");
         }
 
-        if(lib_fun.containsKey(p.name)) {
-            cur_List.add(lib_fun.get(p.name));
-            cur_List.add("jr " + Register.ra.toString());
-            return null;
-        }
 
 
         //这个得思考下？
@@ -1016,6 +1018,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         if(isMain){
             currentList.add("li " + Register.v0.toString() + ", 10");
             currentList.add("syscall");
+            return null;
         }
 
         Type type = v.returnType;
