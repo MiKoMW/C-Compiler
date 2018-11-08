@@ -20,10 +20,10 @@ struct apple app1;
 
 struct banana ban2;
 
-int happy(int a){
-    int b;
-    b = a + 1;
-    return b;
+int happy(int a, int b){
+    int c;
+    c = a + b;
+    return c;
 }
 
 int main(){
@@ -32,7 +32,7 @@ int main(){
     char b;
     a = 1;
     b = 'a';
-    a = happy(a);
+    a = happy(a,2);
     print_i(a);
     print_c(b);
     print_s((char *) "HelloWorld!");

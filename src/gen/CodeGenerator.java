@@ -174,36 +174,29 @@ public class CodeGenerator implements ASTVisitor<Register> {
             currentList.add("sw " + register.toString() + ", " + "0($sp)");
         }
 
-
-
         Register ans = getRegister();
         int temp_Reg_num = Register.tmpRegs.size();
 
         if(v.fun_name.equals("read_c")) {
             currentList.add("li $v0, 12\nsyscall");
-            currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("read_i")){
             currentList.add("li $v0, 5\nsyscall");
-            currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("mcmalloc")){
             Register temp = v.params.get(0).accept(this);
             currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
             freeRegister(temp);
             currentList.add("li $v0, 9\nsyscall");
-            currentList.add("move " + ans.toString() + ", " + Register.v0);
         } else if(v.fun_name.equals("print_s")){
             Register temp = v.params.get(0).accept(this);
             currentList.add("move " + Register.paramRegs[0].toString() + ", " + temp);
             freeRegister(temp);
             currentList.add("li $v0, 4\nsyscall");
             currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
             for (Register register : Register.tmpRegs) {
                 currentList.add("addi " + "$sp, $sp, -4");
                 currentList.add("lw " + register.toString() + ", " + "0($sp)");
             }
             currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
             freeRegister(ans);
             return null;
         } else if(v.fun_name.equals("print_i")){
@@ -218,7 +211,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("lw " + register.toString() + ", " + "0($sp)");
             }
             currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
             freeRegister(ans);
             return null;
         } else if(v.fun_name.equals("print_c")){
@@ -234,24 +226,18 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("lw " + register.toString() + ", " + "0($sp)");
             }
             currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
             freeRegister(ans);
             return null;
         }
 
-
         currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
         for (Register register : Register.tmpRegs) {
             currentList.add("addi " + "$sp, $sp, -4");
             currentList.add("lw " + register.toString() + ", " + "0($sp)");
         }
         currentList.add("addi " + "$sp, $sp, " + temp_Reg_num * 4);
-
-
+        currentList.add("move " + ans.toString() + ", " + Register.v0);
         return ans;
-
-
     }
 
 
@@ -352,8 +338,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         current_Stack_offset = 0;
 
-        saveAllRegister();
-
+        if(!p.name.equals("main")) {
+            saveAllRegister();
+        }
         p.block.accept(this);
 
         //currentList.add("move $sp, $fp");
@@ -713,22 +700,22 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("mfhi " + result.toString());
                 break;
             case GE:
-                currentList.add("sge " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("sge "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             case LE:
-                currentList.add("sle " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("sle " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             case GT:
-                currentList.add("sgt " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("sgt "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             case LT:
-                currentList.add("slt " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("slt " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             case NE:
-                currentList.add("sne " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("sne "+ result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             case EQ:
-                currentList.add("seq " + ", " + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                currentList.add("seq "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             default:
                 result = null;
@@ -886,9 +873,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         String start = newLable();
         String end = newLable();
-        Register con = v.expr.accept(this);
 
         currentList.add(start + ":");
+        Register con = v.expr.accept(this);
         currentList.add("beqz " + con.toString() + ", " + end);
         v.stmt.accept(this);
         currentList.add("j " + start);
