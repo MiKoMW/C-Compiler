@@ -332,7 +332,9 @@ public class Tokeniser {
                 }
 
                 if(c == '\\'){
+                    sb.append(c);
                     c = scanner.next();
+                    sb.append(c);
                     ans = chars.get(c);
                     if(ans == null){
                         ans = c;
@@ -341,7 +343,7 @@ public class Tokeniser {
                         error(c, line, column);
                         //return new Token(TokenClass.INVALID, line, column);
                     }
-                    sb.append(ans);
+                    //sb.append(ans);
                 }else{
                     sb.append(c);
                 }

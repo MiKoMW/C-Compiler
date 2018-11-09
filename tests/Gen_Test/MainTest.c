@@ -28,14 +28,7 @@ int happy(int a, int b){
 
 int main(){
 
-    int a;
-    char b;
-    a = 1;
-    b = 'a';
-    a = happy(a,2);
-    print_i(a);
-    print_c(b);
-    print_s((char *) "HelloWorld!");
+    print_s((char *) "HelloWorld!\n");
     return 0;
 }
 
