@@ -521,7 +521,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("lb "+ans.toString()+", ("+addrReg.toString()+")");
                 freeRegister(addrReg);
             } else {
-                writer.println("la "+addrReg.toString()+","+v.name);
+                currentList.add("la "+addrReg.toString()+","+v.name);
                 freeRegister(ans);
                 return addrReg;
             }
@@ -738,6 +738,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Register arr = v.array.accept(this);
         Register idx = v.index.accept(this);
 
+
+
         Type type = ((VarExpr) v.array).vd.var_type;
 
         if (type instanceof StructType) {
@@ -756,7 +758,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("li " + arr.toString() + ",  4");
                 currentList.add("mul " + idx.toString() + ", " + idx.toString() + ", " + arr.toString());
                 currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
-                currentList.add("lw " + ans.toString() + ", " + ans.toString());
+                currentList.add("lw " + ans.toString() + ", (" + ans.toString() + ")");
         }
         freeRegister(arr);
         freeRegister(idx);
@@ -786,9 +788,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         if(!(type instanceof StructType || type instanceof ArrayType)){
             if(type == BaseType.CHAR){
-                currentList.add("lb " + ans.toString() + ", " + ans.toString());
+                currentList.add("lb " + ans.toString() + ", (" + ans.toString() +")");
             }else {
-                currentList.add("lw " + ans.toString() + ", " + ans.toString());
+                currentList.add("lw " + ans.toString() + ", (" + ans.toString() +")");
             }
         }
 
@@ -809,9 +811,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         currentList.add("move " + ans.toString() + ", " + expr.toString());
         if(v.type == BaseType.CHAR){
-            currentList.add("lb " + ans.toString() + ", " + ans.toString());
+            currentList.add("lb " + ans.toString() + ", (" + ans.toString() +")");
         }else if(v.type == BaseType.INT || v.type instanceof PointerType){
-            currentList.add("lw " + ans.toString() + ", " + ans.toString());
+            currentList.add("lw " + ans.toString() + ", (" + ans.toString() +")");
         }
         freeRegister(expr);
 
@@ -952,8 +954,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
             freeRegister(struct);
             lhsReg = v.lhs.accept(this);
         } else if(v.lhs instanceof  ArrayAccessExpr){
+
             lhsReg = getRegister();
+            //currentList.add("我的register？");
             Register arr = ((ArrayAccessExpr) v.lhs).array.accept(this);
+            //System.out.println(((ArrayAccessExpr) v.lhs).array);
+            //currentList.add("我的register？不见了？");
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
             Type type = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.var_type;

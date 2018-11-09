@@ -1,40 +1,35 @@
+//#include "(･ω´･ )"
 #include "minic-stdlib.h"
 
-void main() {
-  int n;
-  int first;
-  int second;
-  int next;
-  int c;
-  char t;
+struct apple{
+    int a;
+    char b;
+    char c[11];
 
-  // read n from the standard input
-  n = read_i();
+};
 
-  first = 0;
-  second = 1;
+struct banana{
+    int a;
+    struct apple app;
+};
 
-  print_s((char*)"First ");
-  print_i(n);
-  print_s((char*)" terms of Fibonacci series are : ");
+int as[10];
+char bs[10];
+char bss[11];
 
+struct apple app1;
 
-  c = 0;
+struct banana ban2;
 
-
-  while (c < n) {
-    if ( c <= 1 )
-      next = c;
-    else
-      {
-	next = first + second;
-	first = second;
-
-	second = next;
-      }
-    print_i(next);
-    print_s((char*)" ");
-    c = c+1;
-
-  }
+int happy(int a, int b){
+    int c;
+    c = a + b;
+    return c;
 }
+
+int main(){
+
+    print_s((char *) "HelloWorld!\n");
+    return 0;
+}
+
