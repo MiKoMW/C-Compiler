@@ -805,6 +805,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
         Register ans = getRegister();
         Register expr = v.expr.accept(this);
 
+
+
         currentList.add("move " + ans.toString() + ", " + expr.toString());
         if(v.type == BaseType.CHAR){
             currentList.add("lb " + ans.toString() + ", " + ans.toString());
@@ -997,9 +999,17 @@ public class CodeGenerator implements ASTVisitor<Register> {
     public Register visitReturn(Return v) {
 
         if(isMain){
-            currentList.add("li " + Register.v0.toString() + ", 10");
-            currentList.add("syscall");
-            return null;
+            if(v.expr == null) {
+                currentList.add("li " + Register.v0.toString() + ", 10");
+                currentList.add("syscall");
+                return null;
+            }else{
+                Register register = v.expr.accept(this);
+                currentList.add("move " + Register.v0.toString() + ", " + register.toString());
+                freeRegister(register);
+                currentList.add("li " + Register.v0.toString() + ", 17");
+                currentList.add("syscall");
+            }
         }
 
         Type type = v.returnType;
