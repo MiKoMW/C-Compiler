@@ -1011,7 +1011,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 return null;
             }else{
                 Register register = v.expr.accept(this);
-                currentList.add("move " + Register.v0.toString() + ", " + register.toString());
+                currentList.add("move " + Register.paramRegs[0] + ", " + register.toString());
                 freeRegister(register);
                 currentList.add("li " + Register.v0.toString() + ", 17");
                 currentList.add("syscall");
