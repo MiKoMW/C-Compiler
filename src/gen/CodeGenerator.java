@@ -278,33 +278,18 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitFunDecl(FunDecl p) {
 
-
         ArrayList<String> cur_List;
-        //Type returnType = p.fun_type;
-
         current_Stack_offset = 0;
-
-
 
         if(p.name.equals("main")){
             cur_List = mainFun;
         }else{
             cur_List = funOut;
             if(lib_fun.containsKey(p.name)) {
-                //cur_List.add(lib_fun.get(p.name));
-                //cur_List.add("jr " + Register.ra.toString());
                 return null;
             }
-
             cur_List.add(p.name + ":");
         }
-
-
-
-        //这个得思考下？
-        //没啥用的啊？
-        // 这个问题贼鸡儿大！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-
 
         int params_size = 0;
 
