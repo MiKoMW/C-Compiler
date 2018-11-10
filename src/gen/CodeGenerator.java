@@ -770,8 +770,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         StructInfo structInfo = strcutInfos.get(structName);
 
-        int offset = structInfo.innerDecl.get(structName);
-        Type type = structInfo.typeMapping.get(structName);
+        int offset = structInfo.innerDecl.get(v.field);
+        Type type = structInfo.typeMapping.get(v.field);
 
 
 
@@ -945,12 +945,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
             StructInfo structInfo = strcutInfos.get(structName);
 
-            int offset = structInfo.innerDecl.get(structName);
+            int offset = structInfo.innerDecl.get(((FieldAccessExpr) v.lhs).field);
 
             currentList.add("move " + lhsReg.toString() + ", " + struct.toString());
             currentList.add("addi " + lhsReg.toString() + ", " + lhsReg.toString() + ", " + offset);
             freeRegister(struct);
-            lhsReg = v.lhs.accept(this);
         } else if(v.lhs instanceof  ArrayAccessExpr){
 
             lhsReg = getRegister();
