@@ -159,7 +159,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
     }
 
 
-    public Register genLibFun(FunCallExpr v){
+    private Register genLibFun(FunCallExpr v){
 
         for (Register register : Register.tmpRegs) {
             currentList.add("addi " + "$sp, $sp, -4");

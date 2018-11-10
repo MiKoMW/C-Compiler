@@ -477,6 +477,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 			return null;
 		}
 		Type lhs_type = v.lhs.accept(this);
+
 		if(lhs_type == BaseType.VOID || lhs_type instanceof ArrayType){
 			error("Assign left hand side is not assignable!");
 			return null;
