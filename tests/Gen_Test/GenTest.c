@@ -1,35 +1,40 @@
 //#include "(･ω´･ )"
 #include "minic-stdlib.h"
+int arr[10];
 
-struct apple{
-    int a;
-    char b;
-    char c[11];
+int binarySearch(int target,  int startIndex, int endIndex){
 
-};
+	int midIndex;
+	midIndex = ((endIndex - startIndex) / 2) + startIndex;
 
-struct banana{
-    int a;
-    struct apple app;
-};
+	if(midIndex == startIndex || midIndex == endIndex ){
 
-int as[10];
-char bs[10];
-char bss[11];
-
-struct apple app1;
-
-struct banana ban2;
-
-int happy(int a, int b){
-    int c;
-    c = a + b;
-    return c;
+		if(target == arr[midIndex]){return midIndex;}
+		else{
+		if(target == arr[midIndex+1])
+		{return midIndex+1;}
+		else {return -1;}
+	    }
+	}
+	if(target > arr[midIndex]){ // go right
+		midIndex = midIndex + 1;
+		binarySearch(target,midIndex,endIndex);
+	}
+	else {if(target < arr[midIndex]){ // go left
+		midIndex = midIndex - 1;
+		binarySearch(target,startIndex,midIndex);
+	}
+	}
 }
 
 int main(){
-
-    print_s((char *) "HelloWorld!\n");
+    int temp;
+    temp = 10;
+    while(temp > 0){
+        arr[temp] =  temp;
+        temp = temp - 1;
+    }
+    print_i(binarySearch(3,0,9));
     return 0;
-}
 
+}

@@ -668,7 +668,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
             case MUL:
                 currentList.add("mult " + lhs.toString() + ", " + rhs.toString());
                 currentList.add("mflo " + result.toString());
-
                 break;
             case MOD:
                 currentList.add("div " + lhs.toString() + ", " + rhs.toString());
@@ -691,6 +690,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 break;
             case EQ:
                 currentList.add("seq "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case OR:
+                currentList.add("or "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
+                break;
+            case AND:
+                currentList.add("and "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             default:
                 result = null;
@@ -995,6 +1000,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 freeRegister(register);
                 currentList.add("li " + Register.v0.toString() + ", 17");
                 currentList.add("syscall");
+                return null;
+
             }
         }
 
