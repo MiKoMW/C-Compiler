@@ -861,7 +861,13 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     @Override
     public Register visitExprStmt(ExprStmt v) {
-        return v.expr.accept(this);
+
+        Register register = v.expr.accept(this);
+        if(register != null){
+            freeRegister(register);
+        }
+
+        return null;
     }
 
     @Override
