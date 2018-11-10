@@ -28,6 +28,100 @@ int main(){
 
     print_i(ba.a);
     print_c(ba.b);
+    ap.a = 1;
+    ap.b = 'a';
+    ba = fun1(ap,'a',2);
+
+    print_i(ba.a);
+    print_c(ba.b);
+    print_i(ba.a);
+        print_c(ba.b);
+        ap.a = 1;
+        ap.b = 'a';
+        ba = fun1(ap,'a',2);
+
+        print_i(ba.a);
+        print_c(ba.b);
+        print_i(ba.a);
+            print_c(ba.b);
+            ap.a = 1;
+            ap.b = 'a';
+            ba = fun1(ap,'a',2);
+
+            print_i(ba.a);
+            print_c(ba.b);
+            print_i(ba.a);
+                print_c(ba.b);
+                ap.a = 1;
+                ap.b = 'a';
+                ba = fun1(ap,'a',2);
+
+                print_i(ba.a);
+                print_c(ba.b);
+                print_i(ba.a);
+                    print_c(ba.b);
+                    ap.a = 1;
+                    ap.b = 'a';
+                    ba = fun1(ap,'a',2);
+
+                    print_i(ba.a);
+                    print_c(ba.b);
+                    print_i(ba.a);
+                        print_c(ba.b);
+                        ap.a = 1;
+                        ap.b = 'a';
+                        ba = fun1(ap,'a',2);
+
+                        print_i(ba.a);
+                        print_c(ba.b);
+                        print_i(ba.a);
+                            print_c(ba.b);
+                            ap.a = 1;
+                            ap.b = 'a';
+                            ba = fun1(ap,'a',2);
+
+                            print_i(ba.a);
+                            print_c(ba.b);
+                            print_i(ba.a);
+                                print_c(ba.b);
+                                ap.a = 1;
+                                ap.b = 'a';
+                                ba = fun1(ap,'a',2);
+
+                                print_i(ba.a);
+                                print_c(ba.b);
+                                print_i(ba.a);
+                                    print_c(ba.b);
+                                    ap.a = 1;
+                                    ap.b = 'a';
+                                    ba = fun1(ap,'a',2);
+
+                                    print_i(ba.a);
+                                    print_c(ba.b);
+                                    print_i(ba.a);
+                                        print_c(ba.b);
+                                        ap.a = 1;
+                                        ap.b = 'a';
+                                        ba = fun1(ap,'a',2);
+
+                                        print_i(ba.a);
+                                        print_c(ba.b);
+                                        print_i(ba.a);
+                                            print_c(ba.b);
+                                            ap.a = 1;
+                                            ap.b = 'a';
+                                            ba = fun1(ap,'a',2);
+
+                                            print_i(ba.a);
+                                            print_c(ba.b);
+                                            print_i(ba.a);
+                                                print_c(ba.b);
+                                                ap.a = 1;
+                                                ap.b = 'a';
+                                                ba = fun1(ap,'a',2);
+
+                                                print_i(ba.a);
+                                                print_c(ba.b);
 
     return 1;
 
