@@ -521,9 +521,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 currentList.add("lb "+ans.toString()+", ("+addrReg.toString()+")");
                 freeRegister(addrReg);
             } else {
-                currentList.add("la "+addrReg.toString()+","+v.name);
-                freeRegister(ans);
-                return addrReg;
+                currentList.add("la "+ans.toString()+","+v.name);
+                freeRegister(addrReg);
+                return ans;
             }
             return ans;
         } else{
@@ -535,8 +535,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 freeRegister(addrReg);
             } else {
                 currentList.add("la "+ans.toString()+", "+ -varDecl.stack_offset + "("+Register.fp.toString()+")");
-                freeRegister(ans);
-                return addrReg;
+                freeRegister(addrReg);
+                return ans;
             }
             return ans;
         }
