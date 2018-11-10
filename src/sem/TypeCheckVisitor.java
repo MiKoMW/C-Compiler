@@ -346,7 +346,6 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 
 	public Type visitFieldAccessExpr(FieldAccessExpr v){
 		Type structType = v.struct.accept(this);
-
 		if(!(structType instanceof StructType)){
 			error("Invalid Struct Type Access!");
 			return null;
@@ -355,6 +354,7 @@ public class TypeCheckVisitor extends BaseSemanticVisitor<Type> {
 		//v.structType = (StructType) structType;
 
 		String structName = ((StructType) structType).struct_Name;
+		v.struct_name = structName;
 		if(!structMap.keySet().contains(structName)){
 			error("Undeclared Struct Type!");
 		}

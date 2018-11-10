@@ -5,7 +5,7 @@ public class FieldAccessExpr extends Expr{
     public final Expr struct;
     public final String field;
     //public StructTypeDecl structTypeDecl;
-    //public StructType structType;
+    public String struct_name;
 
     public FieldAccessExpr(Expr str, String fld){
         this.struct = str;

@@ -764,7 +764,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         //如果是structure 这货应该是传址的。
         Register struct = v.struct.accept(this);
 
-        String structName = ((StructType) ((VarExpr)v.struct).vd.var_type).struct_Name;
+        String structName = v.struct_name;
 
         StructInfo structInfo = strcutInfos.get(structName);
 
