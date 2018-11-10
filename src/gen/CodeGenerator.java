@@ -96,14 +96,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         globalLevel = true;
 
-        // =========================================================================================改了parameter后可能会存在问题！！！！
+        // It used to be the mapping for code gen. Now it is working as a set for check lib_fun.!
         lib_fun.put("print_s","li $v0, 4\nsyscall");
         lib_fun.put("print_i","li $v0, 1\nsyscall");
         lib_fun.put("print_c","li $v0, 11\nsyscall");
         lib_fun.put("read_c","li $v0, 12\nsyscall");
         lib_fun.put("read_i","li $v0, 5\nsyscall");
-
-        //这我也不知道对不对了!!!!!!!!
         lib_fun.put("mcmalloc","li $v0, 9\nsyscall");
 
     }
@@ -112,14 +110,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         output.addAll(stastic_data);
         output.addAll(funOut);
-        //System.out.println(mainFun.size());indfsa
-        /*
-        if (mainFun.size() < 2){
-            mainFun.add("main:");
-        }*/
         output.addAll(mainFun);
 
-        // 这个有问题！！！！！
         output.add("li " + Register.v0.toString() + ", 10");
         output.add("syscall");
     }
