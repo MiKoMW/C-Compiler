@@ -242,9 +242,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
             currentList.add("lb  " + temp.toString() + ", " + con + "(" + from.toString() + ")");
             currentList.add("sb  " + temp.toString() + ", " + con + "(" + to.toString() + ")");
         }
-
         freeRegister(temp);
-
     }
 
 
@@ -732,7 +730,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
 
 
-        Type type = ((VarExpr) v.array).vd.var_type;
+        Type type = (v.array).type;
 
         if (type instanceof StructType) {
                 int size = ((VarExpr) v.array).vd.memo_size;
@@ -959,7 +957,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //currentList.add("我的register？不见了？");
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
-            Type type = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.var_type;
+            Type type = (((ArrayAccessExpr) v.lhs).array).type;
 
             if (type instanceof StructType) {
                 int size = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.memo_size;
