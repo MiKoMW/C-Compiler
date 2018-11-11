@@ -86,7 +86,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         mainFun.add(".globl main");
         mainFun.add("main:");
-       // mainFun.add("move $fp, $sp");
+        mainFun.add("addi " + Register.fp.toString() + ", " +  Register.fp.toString() + "-4");
+        mainFun.add("addi " + Register.sp.toString() + ", " +  Register.sp.toString() + "-4");
+
+        // mainFun.add("move $fp, $sp");
 
         current_Stack_offset = 0;
         OffSetVisitor offSetVisitor = new OffSetVisitor();
@@ -562,8 +565,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         FunDecl funDecl = v.funDecl;
         // Lib_function 一会写！！
+        currentList.add("#FunName: " + v.fun_name);
 
 
+        currentList.add("#准备return");
         if(lib_fun.containsKey(v.fun_name)){
             return genLibFun(v);
         }
@@ -586,12 +591,15 @@ public class CodeGenerator implements ASTVisitor<Register> {
         }
         int pre_stack_offset = current_Stack_offset;
 
+        currentList.add("#save ra fp");
 
         currentList.add("addi  " + Register.sp.toString() +", "+ Register.sp.toString() + ", -" +  4);
         currentList.add("sw $ra, (" + Register.sp.toString()+")");
         currentList.add("addi  "+ Register.sp.toString() +", " + Register.sp.toString() + ", -" +  4);
         currentList.add("sw "+ Register.fp + ", (" + Register.sp.toString()+")");
         //currentList.add("addi $sp, $sp, -4");
+
+        currentList.add("#准备param");
 
         int param_Szie = 0;
         int con = 0;
@@ -620,6 +628,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 param_Szie += 4;
             }
         }
+        currentList.add("#跳");
 
         currentList.add("jal " + v.fun_name);
         currentList.add("move " + Register.sp.toString() + ", " + Register.fp.toString());

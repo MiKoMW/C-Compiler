@@ -439,7 +439,7 @@ public class Parser {
                     expect(TokenClass.RPAR);
                     //return;
                 }
-                return new FunCallExpr(cur.data,exprs);
+                expr =  new FunCallExpr(cur.data,exprs);
             }
 
         while(accept(TokenClass.LSBR,TokenClass.DOT) ) {
