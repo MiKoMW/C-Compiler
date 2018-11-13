@@ -14,9 +14,9 @@ struct apple fun1(int a, int b, int c){
     return ap;
 }
 
-struct apple fun2(struct apple ap, int a){
-    print_i(a);
-    ap.a = a;
+struct apple fun2(struct apple ap, struct apple a){
+    print_i(a.a);
+    ap.a = a.a;
 
 return ap;
 }
@@ -29,9 +29,9 @@ int main(){
     int temp;
    app.a = 2;
     //temp = fun1(1,2,3);
-   print_i(fun2(app,fun1(1,2,3).a).a);
+   print_i(fun2(app,fun1(1,2,3)).a);
 
-   fun2(app,fun1(1,2,3).a).a;
+   fun2(app,fun1(1,2,3)).a;
 
 
    print_i(1 + fun1(1,2,3).a);
