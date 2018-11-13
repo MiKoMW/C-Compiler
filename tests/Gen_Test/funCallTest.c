@@ -7,13 +7,15 @@ struct apple{
 
 };
 
-int fun1(int a, int b, int c){
-    a = b;
-    return a  + b + 4;
+struct apple fun1(int a, int b, int c){
+
+    struct apple ap;
+    ap.a = 1;
+    return ap;
 }
 
 struct apple fun2(struct apple ap, int a){
-    //print_i(a);
+    print_i(a);
     ap.a = a;
 
 return ap;
@@ -22,19 +24,19 @@ return ap;
 
 int main(){
 
-   int a;
+    int a;
+    int b;
    struct apple app;
 
+    int temp;
    app.a = 2;
-   print_i(fun2(app,fun1(1,2,3)).a);
+    //temp = fun1(1,2,3);
+   print_i(fun2(app,fun1(1,2,3).a).a);
 
-   fun2(app,fun1(1,2,3)).a;
-   fun2(app,fun1(1,2,3)).a;
-   fun2(app,fun1(1,2,3)).a;
-   fun2(app,fun1(1,2,3)).a;
-   fun2(app,fun1(1,2,3)).a;
+   fun2(app,fun1(1,2,3).a).a;
 
-   print_i(1 + fun1(1,2,3));
+
+   print_i(1 + fun1(1,2,3).a);
 
 
 }
