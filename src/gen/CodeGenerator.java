@@ -751,7 +751,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
 
 
-        Type type = (v.array).type;
+        //Type type = (v.array).type;
+        //System.out.println(type);
+        Type type = ((ArrayType)((v).array).type).elem_type;
+
 
         if (type instanceof StructType) {
                 int size = ((VarExpr) v.array).vd.memo_size;
@@ -762,7 +765,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         } else if(type == BaseType.CHAR){
                 currentList.add("move " + ans.toString() + ", " + arr.toString());
                 currentList.add("add " + ans.toString() + ", " + ans.toString() + ", " + idx.toString());
-                currentList.add("lb " + ans.toString() + ", " + ans.toString());
+                currentList.add("lb " + ans.toString() + ", (" + ans.toString() + ")");
 
         } else{
                 currentList.add("move " + ans.toString() + ", " + arr.toString());
@@ -960,7 +963,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //如果是structure 这货应该是传址的。
             Register struct = ((FieldAccessExpr) v.lhs).struct.accept(this);
 
-            String structName = ((StructType) ((VarExpr)((FieldAccessExpr) v.lhs).struct).vd.var_type).struct_Name;
+            //String structName = ((StructType) ((VarExpr)((FieldAccessExpr) v.lhs).struct).vd.var_type).struct_Name;
+
+            String structName = ((FieldAccessExpr) v.lhs).struct_name;
 
             StructInfo structInfo = strcutInfos.get(structName);
 
@@ -978,7 +983,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //currentList.add("我的register？不见了？");
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
-            Type type = (((ArrayAccessExpr) v.lhs).array).type;
+            Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
 
             if (type instanceof StructType) {
                 int size = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.memo_size;
