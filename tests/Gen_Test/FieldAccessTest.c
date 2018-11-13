@@ -16,6 +16,7 @@ int main(){
     struct apple app;
     int a;
     banana.iphone.temp[5] = 1;
+    banana.iphone.iphone = 2;
     a = banana.iphone.iphone;
     print_i(a);
     print_i(banana.iphone.temp[5]);
