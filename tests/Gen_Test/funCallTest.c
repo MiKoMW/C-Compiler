@@ -23,10 +23,8 @@ return ap;
 
 
 int main(){
-
-    int a;
-    int b;
    struct apple app;
+
 
     int temp;
    app.a = 2;

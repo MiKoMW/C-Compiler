@@ -11,6 +11,6 @@ int main(){
     int a;
 
 
-    fun1(fun1(1));
+    print_i(fun1(fun1(1)));
     return 0;
 }

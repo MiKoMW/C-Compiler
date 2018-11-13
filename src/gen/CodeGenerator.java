@@ -72,6 +72,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
     private HashMap<String,String> str_label = new HashMap<>();
     private HashMap<String,String> lib_fun = new HashMap<>();
 
+    private Stack<Integer> param_funcall_size = new Stack<>();
+
     private boolean isMain;
 
     private int current_Stack_offset;
@@ -563,13 +565,14 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitFunCallExpr(FunCallExpr v) {
 
+
         FunDecl funDecl = v.funDecl;
         // Lib_function 一会写！！
         //currentList.add("#FunName: " + v.fun_name);
 
         //currentList.add("#准备return");
 
-        int param_return_Size = 0;
+        //int param_return_Size = 0;
 
         if(lib_fun.containsKey(v.fun_name)){
             return genLibFun(v);
@@ -596,7 +599,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         currentList.add("#save ra fp");
 
         currentList.add("addi  " + Register.sp.toString() +", "+ Register.sp.toString() + ", -" +  4);
-        currentList.add("sw $ra, (" + Register.sp.toString()+")");
+        currentList.add("sw " + Register.ra.toString() + " , (" + Register.sp.toString()+")");
         currentList.add("addi  "+ Register.sp.toString() +", " + Register.sp.toString() + ", -" +  4);
         currentList.add("sw "+ Register.fp + ", (" + Register.sp.toString()+")");
         //currentList.add("addi $sp, $sp, -4");
@@ -611,20 +614,24 @@ public class CodeGenerator implements ASTVisitor<Register> {
             Type type = v.params.get(con).type;
             con++;
 
-            if(expr instanceof FunCallExpr){
-                param_return_Size +=  ((FunCallExpr) expr).funDecl.return_Size;
-            }
+
 
             if(type instanceof StructType){
                 StructInfo structInfo = strcutInfos.get(((StructType) type).struct_Name);
                 int size = structInfo.size;
-                currentList.add("addi $sp, $sp, -" + (size));
-
-                copyValue(register,Register.sp,size);
+                // ============================================================================思考下？
+                //if(!(expr instanceof FunCallExpr)){
+                    currentList.add("addi $sp, $sp, -" + (size));
+                    copyValue(register,Register.sp,size);
+                //}
                 freeRegister(register);
                 param_Szie += size;
             }else{
-                currentList.add("addi $sp, $sp, -4");
+                // ============================================================================思考下？
+
+                //if(!(expr instanceof FunCallExpr)) {
+                    currentList.add("addi $sp, $sp, -4");
+                //}
                 if(type == BaseType.CHAR){
                     currentList.add("sb " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
                 }else {
@@ -634,12 +641,14 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 param_Szie += 4;
             }
         }
+
+        //param_funcall_size.push(param_return_Size);
+
         //currentList.add("#跳");
 
         currentList.add("jal " + v.fun_name);
         currentList.add("move " + Register.sp.toString() + ", " + Register.fp.toString());
         currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  param_Szie);
-        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  param_return_Size);
 
         currentList.add("lw "+ Register.fp + ", (" + Register.sp.toString()+")");
 
@@ -660,6 +669,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
         } else {
             currentList.add("lw " + ans.toString() + ", (" + ans.toString() + ")");
         }
+
+        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  v.funDecl.return_Size); // ===========这个不对
+
 
         return ans;
     }
