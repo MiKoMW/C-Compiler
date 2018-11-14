@@ -15,19 +15,19 @@ int main(){
 
     print_i(sizeof(int));
     print_c('\n');
-        print_i(sizeof(char));
-            print_c('\n');
+    print_i(sizeof(char));
+    print_c('\n');
 
-        print_i(sizeof(int *));
-            print_c('\n');
+    print_i(sizeof(int *));
+    print_c('\n');
 
-        print_i(sizeof(struct apple));
-            print_c('\n');
+    print_i(sizeof(struct apple));
+    print_c('\n');
 
-               print_i(sizeof(char [10]));
-                   print_c('\n');
+    print_i(sizeof(char [10]));
+    print_c('\n');
 
-               print_i(sizeof(struct banana));
+    print_i(sizeof(struct banana));
 
 
 }
