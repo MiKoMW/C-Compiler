@@ -570,7 +570,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
         //currentList.add("#准备return");
 
-        int param_return_Size = 0;
+        //int param_return_Size = 0;
 
         if(lib_fun.containsKey(v.fun_name)){
             return genLibFun(v);
@@ -611,10 +611,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
             Register register = expr.accept(this);
             Type type = v.params.get(con).type;
             con++;
-
-            if(expr instanceof FunCallExpr){
-                param_return_Size +=  ((FunCallExpr) expr).funDecl.return_Size;
-            }
 
             if(type instanceof StructType){
                 StructInfo structInfo = strcutInfos.get(((StructType) type).struct_Name);
@@ -665,7 +661,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
             currentList.add("lw " + ans.toString() + ", (" + ans.toString() + ")");
         }
 
-        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  v.funDecl.return_Size);
+        //currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  v.funDecl.return_Size);
 
 
         return ans;
@@ -746,10 +742,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
 
 
-        Type type = (v.array).type;
+        //Type type = (v.array).type;
         //System.out.println(type);
         //==========================================================================================================================不对
-        //Type type = ((ArrayType)((v).array).type).elem_type;
+        Type type = ((ArrayType)((v).array).type).elem_type;
 
 
         if (type instanceof StructType) {
@@ -975,8 +971,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
             //=======================================================================================这个不对！！
-            //Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
-            Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type);
+            Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
+            //Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type);
             if (type instanceof StructType) {
                 int size = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.memo_size;
 
