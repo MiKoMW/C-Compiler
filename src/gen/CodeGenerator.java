@@ -627,7 +627,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 param_Szie += size;
             }else{
 
-                    currentList.add("addi $sp, $sp, -4");
+                currentList.add("addi $sp, $sp, -4");
                 if(type == BaseType.CHAR){
                     currentList.add("sb " + register.toString() + ", " + "(" + Register.sp.toString()+ ")");
                 }else {
@@ -643,7 +643,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         currentList.add("jal " + v.fun_name);
         currentList.add("move " + Register.sp.toString() + ", " + Register.fp.toString());
         currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  param_Szie);
-        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  param_return_Size);
+        //currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  param_return_Size);
 
         currentList.add("lw "+ Register.fp + ", (" + Register.sp.toString()+")");
 
@@ -664,6 +664,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
         } else {
             currentList.add("lw " + ans.toString() + ", (" + ans.toString() + ")");
         }
+
+        currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  v.funDecl.return_Size);
+
 
         return ans;
     }
@@ -743,9 +746,10 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
 
 
-        //Type type = (v.array).type;
+        Type type = (v.array).type;
         //System.out.println(type);
-        Type type = ((ArrayType)((v).array).type).elem_type;
+        //==========================================================================================================================不对
+        //Type type = ((ArrayType)((v).array).type).elem_type;
 
 
         if (type instanceof StructType) {
@@ -970,8 +974,9 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //currentList.add("我的register？不见了？");
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
-            Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
-
+            //=======================================================================================这个不对！！
+            //Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
+            Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type);
             if (type instanceof StructType) {
                 int size = ((VarExpr) ((ArrayAccessExpr) v.lhs).array).vd.memo_size;
 
