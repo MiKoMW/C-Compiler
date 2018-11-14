@@ -812,16 +812,11 @@ public class CodeGenerator implements ASTVisitor<Register> {
         return ans;
     }
 
-
-    // 这东西怎么用呢？ ============================================================================================================================================================
-
     @Override
     public Register visitValueAtExpr(ValueAtExpr v) {
 
         Register ans = getRegister();
         Register expr = v.expr.accept(this);
-
-
 
         currentList.add("move " + ans.toString() + ", " + expr.toString());
         if(v.type == BaseType.CHAR){
