@@ -632,6 +632,12 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 freeRegister(register);
                 param_Szie += 4;
             }
+
+            if(expr instanceof FunCallExpr){
+                currentList.add("addi  " + Register.sp.toString() + ", " + Register.sp.toString() + ", " +  ((FunCallExpr) expr).funDecl.return_Size);
+
+            }
+
         }
 
         //currentList.add("#跳");
