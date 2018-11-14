@@ -1,3 +1,5 @@
+#include "minic-stdlib.h"
+
 struct apple{
     int a;
     int b;

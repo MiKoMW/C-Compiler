@@ -1,3 +1,5 @@
+#include "minic-stdlib.h"
+
 int test(int a ){
     int b;
     b = a + 1;

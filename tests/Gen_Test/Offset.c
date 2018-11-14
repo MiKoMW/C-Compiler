@@ -1,3 +1,5 @@
+#include "minic-stdlib.h"
+
 struct apple{
 
     int a;
@@ -51,7 +53,7 @@ int main(){
 
     "dsadsad";
     iphone;
-    foo(1);
+    print_i(foo(1));
     banas;
 
         //test(1);

@@ -1,4 +1,4 @@
-#include "(oﾟvﾟ)ノ"
+#include "minic-stdlib.h"
 
 struct apple{
     int iphone;

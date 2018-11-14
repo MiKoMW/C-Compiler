@@ -1,3 +1,5 @@
+#include "minic-stdlib.h"
+
 int fun1(int a){
     return a +1;
 }

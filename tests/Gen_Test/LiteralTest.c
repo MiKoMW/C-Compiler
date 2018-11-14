@@ -10,3 +10,5 @@ int main(){
     return 1;
 
 }
+
+// Not a good test. Bus error 10 for mac!

@@ -1,3 +1,5 @@
+#include "minic-stdlib.h"
+
 int main(){
    int * pt;
    char a;
