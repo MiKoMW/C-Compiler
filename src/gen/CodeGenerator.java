@@ -677,9 +677,42 @@ public class CodeGenerator implements ASTVisitor<Register> {
     @Override
     public Register visitBinOp(BinOp v) {
         Register lhs = v.first.accept(this);
-        Register rhs = v.second.accept(this);
-
+        Register rhs;
         Register result = getRegister();
+
+        if(v.operator == Op.OR){
+            String short_cut = newLable();
+            String end_lab = newLable();
+            currentList.add("bnez "  + lhs.toString() +"," + short_cut);
+            rhs = v.second.accept(this);
+            currentList.add("move " + result.toString() + ", " + rhs.toString());
+            currentList.add("j " + end_lab);
+            currentList.add(short_cut + ":");
+            currentList.add("li " + result.toString() + ", " + 1);
+            currentList.add("j " + end_lab);
+            currentList.add(end_lab + ":");
+            freeRegister(lhs);
+            freeRegister(rhs);
+            return result;
+        }
+
+        if(v.operator == Op.AND){
+            String short_cut = newLable();
+            String end_lab = newLable();
+            currentList.add("beqz "  + lhs.toString() +"," + short_cut);
+            rhs = v.second.accept(this);
+            currentList.add("move " + result.toString() + ", " + rhs.toString());
+            currentList.add("j " + end_lab);
+            currentList.add(short_cut + ":");
+            currentList.add("li " + result.toString() + ", " + 0);
+            currentList.add("j " + end_lab);
+            currentList.add(end_lab + ":");
+            freeRegister(lhs);
+            freeRegister(rhs);
+            return result;
+        }
+
+        rhs = v.second.accept(this);
 
         switch (v.operator) {
             case ADD:
@@ -717,12 +750,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
                 break;
             case EQ:
                 currentList.add("seq "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
-                break;
-            case OR:
-                currentList.add("or "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
-                break;
-            case AND:
-                currentList.add("and "  + result.toString() +"," + lhs.toString() + ", " + rhs.toString());
                 break;
             default:
                 result = null;
@@ -1071,5 +1098,4 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     }
 }
-
 

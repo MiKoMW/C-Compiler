@@ -13,6 +13,8 @@ struct banana{
 
 int main(){
 
+    struct apple * ptr;
+
     print_i(sizeof(int));
     print_c('\n');
     print_i(sizeof(char));
@@ -28,5 +30,9 @@ int main(){
     print_c('\n');
 
     print_i(sizeof(struct banana));
+
+    print_c('\n');
+
+    print_i(sizeof(struct banana *));
 
 }

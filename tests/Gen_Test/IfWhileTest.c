@@ -1,5 +1,10 @@
 #include "minic-stdlib.h"
 
+int foo() {
+      print_i(2);
+      return 2;
+    }
+
 int main(){
     int a;
     int b;
@@ -29,8 +34,18 @@ int main(){
     con = con + 1;
 
     print_i(con);
-   return 0;
 
+
+    if ((1==0) && foo() == 2){
+    print_i(10086);
+    }
+
+
+    a  = (1==0) && foo() == 2;
+
+    print_i(a);
+
+   return 0;
 
 
 }
