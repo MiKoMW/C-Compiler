@@ -338,8 +338,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
         globalLevel = true;
         isMain = false;
 
-        // ***************************************************************************************** We need string buffer to store the format output.
-        // We need st
         for(StructTypeDecl structTypeDecl : p.structTypeDecls){
             structTypeDecl.accept(this);
         }
@@ -575,7 +573,8 @@ public class CodeGenerator implements ASTVisitor<Register> {
         if(lib_fun.containsKey(v.fun_name)){
             return genLibFun(v);
         }
-            Type returnType = funDecl.fun_type;
+
+        Type returnType = funDecl.fun_type;
 
         if(returnType == BaseType.VOID) {
 
@@ -594,7 +593,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         }
         int pre_stack_offset = current_Stack_offset;
 
-        currentList.add("#save ra fp");
+        //currentList.add("#save ra fp");
 
         currentList.add("addi  " + Register.sp.toString() +", "+ Register.sp.toString() + ", -" +  4);
         currentList.add("sw " + Register.ra.toString() + " , (" + Register.sp.toString()+")");
@@ -941,7 +940,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
         // deal with lhsReg and lhsReg is an address!!!!!!!!!!!!!!!!!!!
 
 
-
         if(v.lhs instanceof VarExpr) {
             if (((VarExpr) v.lhs).vd.isStatic) {
                 lhsReg = getRegister();
@@ -976,7 +974,6 @@ public class CodeGenerator implements ASTVisitor<Register> {
             //currentList.add("我的register？不见了？");
             Register idx = ((ArrayAccessExpr) v.lhs).index.accept(this);
 
-            //=======================================================================================这个不对！！
             Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type).elem_type;
             //Type type = ((ArrayType)(((ArrayAccessExpr) v.lhs).array).type);
             if (type instanceof StructType) {
@@ -1062,7 +1059,7 @@ public class CodeGenerator implements ASTVisitor<Register> {
         freeRegister(expr);
         currentList.add("move $sp, $fp");
 
-        // saving all temp register/
+        // load all temp register/
         for (Register register : Register.tmpRegs) {
             currentList.add("addi " + "$sp, $sp, -4");
             currentList.add("lw " + register.toString() + ", " + "0($sp)");
@@ -1074,3 +1071,5 @@ public class CodeGenerator implements ASTVisitor<Register> {
 
     }
 }
+
+
