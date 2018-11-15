@@ -31,4 +31,3 @@ int main(){
     print_s((char *) "HelloWorld!\n");
     return 0;
 }
-

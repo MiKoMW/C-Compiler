@@ -28,3 +28,4 @@ int read_i() {
 void* mcmalloc(int size) {
   return malloc(size);
 }
+
