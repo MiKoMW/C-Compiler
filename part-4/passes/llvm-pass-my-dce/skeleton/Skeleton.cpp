@@ -20,13 +20,16 @@ typedef std::map<BasicBlock*, InstSet> BBMap;
 typedef std::map<Instruction*, InstSet> InstMap;
 
 namespace {
+
   struct MyDCE : public FunctionPass {
     static char ID;
     MyDCE() : FunctionPass(ID) {}
 
     virtual bool runOnFunction(Function &F) {
 
+        // Print live set.
         InstSet deadcode = findDeadCode(F,true);
+
         while(deadcode->size() > 0){
             for(std::set<Instruction*>::iterator it = deadcode->begin(); it != deadcode->end(); it++) {
                 (*it)->eraseFromParent();
@@ -37,41 +40,42 @@ namespace {
         return true;
     }
 
-
+    // Return a set of Dead Instruction. set print_liveness to be true to print the live set.
       virtual InstSet findDeadCode(Function &F,bool print_liveness){
 
           std::set<BasicBlock*> bb_WL;
-          BBMap bb_liveBefore;
-          BBMap bb_liveAfter;
-          InstMap inst_liveBefore;
-          InstMap inst_liveAfter;
+          BBMap bb_liveIn;
+          BBMap bb_liveOut;
+          InstMap inst_liveIn;
+          InstMap inst_liveOut;
           Function::iterator funIter;
           BasicBlock::iterator bbIter;
           std::set<Instruction*>::iterator it;
+
 
           for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
 
               BasicBlock *basicBlock = (&*bb);
               bb_WL.insert(basicBlock);
-              InstSet liveBefore = new std::set<Instruction*>();
-              bb_liveBefore.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveBefore));
+              InstSet liveIn = new std::set<Instruction*>();
+              bb_liveIn.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveIn));
 
-              InstSet liveAfter = new std::set<Instruction*>();
-              bb_liveAfter.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveAfter));
+              InstSet liveOut = new std::set<Instruction*>();
+              bb_liveOut.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveOut));
 
           }
+
 
           while (!( bb_WL.empty() ))
           {
               BasicBlock *bb = *( bb_WL.begin() );
               bb_WL.erase(bb);
 
+              // Calculate gen set and kill set for each block.
               InstSet gen = genSet(bb);
               InstSet kill = killSet(bb);
 
-
               // Debug ----------------------------------------------------------------
-
               /*
               errs() << *bb << "\n";
 
@@ -91,25 +95,27 @@ namespace {
               }
               */
 
-              InstSet liveAfter = bbLiveAfter(bb, bb_liveBefore);
-              delete bb_liveAfter[bb];
-              bb_liveAfter[bb] = liveAfter;
+              // Calculate the In and Out set of the basic block.
+              InstSet liveOut = bbLiveAfter(bb, bb_liveIn);
+              delete bb_liveOut[bb];
+              bb_liveOut[bb] = liveOut;
 
-              InstSet liveBefore = bb_liveBefore[bb];
-              InstSet newLiveBefore = applyGenKill(liveAfter, gen, kill);
+              InstSet temp_liveIn = bb_liveIn[bb];
+              // In = Gen U (Out - Kill)
+              InstSet liveIn = getNewIn(liveOut, gen, kill);
 
               // Debug ---------------------------------------------------------
               /*
               errs() << *bb << "\n";
-              errs() << "newLiveBefore size : " << newLiveBefore->size() << "liveAfter Size : " << liveAfter->size() << "\n";
-              for (it = newLiveBefore->begin(); it != newLiveBefore->end(); it++) {
-                  errs() << "newLiveBefore \n";
+              errs() << "liveIn size : " << liveIn->size() << "liveOut Size : " << liveOut->size() << "\n";
+              for (it = liveIn->begin(); it != liveIn->end(); it++) {
+                  errs() << "liveIn \n";
                   (*it)->printAsOperand(errs(),false);
                   errs() << "\n";
               }
 
-              for (it = liveAfter->begin(); it != liveAfter->end(); it++) {
-                  errs() << "liveAfter \n";
+              for (it = liveOut->begin(); it != liveOut->end(); it++) {
+                  errs() << "liveOut \n";
 
                   (*it)->printAsOperand(errs(),false);
                   errs() << "\n";
@@ -117,23 +123,24 @@ namespace {
 
               */
 
-              if (!compareTwoInstSets(liveBefore,newLiveBefore))
+              if (!compareTwoInstSets(temp_liveIn,liveIn))
               {
-                  delete liveBefore;
-                  bb_liveBefore[bb] = newLiveBefore;
+                  delete temp_liveIn;
+                  bb_liveIn[bb] = liveIn;
                   for (pred_iterator pit = pred_begin(bb); pit != pred_end(bb); pit++) {
                       bb_WL.insert(*pit);
                   }
               }
               else
               {
-                  delete newLiveBefore;
+                  delete liveIn;
               }
 
               delete gen;
               delete kill;
           }
 
+          // Calculate live set per Instruction inside basic block.
           for (funIter = F.begin(); funIter != F.end(); funIter++)
           {
               BasicBlock *bb = &*funIter;
@@ -146,16 +153,16 @@ namespace {
                   succ_inst = this_inst;
                   this_inst = &*bbIter;
 
-                  inst_liveAfter[this_inst] = new std::set<Instruction*>();
+                  inst_liveOut[this_inst] = new std::set<Instruction*>();
                   if (block_ender) {
                       block_ender = false;
-                      *(inst_liveAfter[this_inst]) = *(bb_liveAfter[bb]);
+                      *(inst_liveOut[this_inst]) = *(bb_liveOut[bb]);
                   }
                   else {
-                      *(inst_liveAfter[this_inst]) = *(inst_liveBefore[succ_inst]);
+                      *(inst_liveOut[this_inst]) = *(inst_liveIn[succ_inst]);
                   }
 
-                  inst_liveBefore[this_inst] = instLiveBefore(this_inst, inst_liveAfter);
+                  inst_liveIn[this_inst] = instLiveBefore(this_inst, inst_liveOut);
               } while (bbIter != bb->begin());
           }
 
@@ -166,13 +173,14 @@ namespace {
               for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
                   Instruction *inst = &*bbIter;
                   if (canBeRemoved(inst)) {
-                      std::set<Instruction*>::iterator findInst = inst_liveAfter[inst]->find(inst);
-                      if (findInst == inst_liveAfter[inst]->end())
+                      std::set<Instruction*>::iterator findInst = inst_liveOut[inst]->find(inst);
+                      if (findInst == inst_liveOut[inst]->end())
                           useless->insert(inst);
                   }
               }
           }
 
+          // Print live set for each instruction need to be print.
           if(print_liveness){
               //Debug ----------------------------------------
 
@@ -184,9 +192,9 @@ namespace {
                   for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
                       Instruction *inst = &*bbIter;
 
-                      printInstSet(inst_liveBefore[inst]);
+                      printInstSet(inst_liveIn[inst]);
                       errs() << *inst << "\n";
-                      printInstSet(inst_liveAfter[inst]);
+                      printInstSet(inst_liveOut[inst]);
 
                   }
               }
@@ -205,13 +213,13 @@ namespace {
                       } else{
                           if(isFirst && inst->isTerminator()){}
                           else{
-                          printInstSet(inst_liveBefore[inst]);}
+                          printInstSet(inst_liveIn[inst]);}
                       }
                       isFirst = false;
                   }
                   if(inst->isTerminator() && !isa<ReturnInst>(inst)){}
                   else {
-                      printInstSet(inst_liveAfter[inst]);
+                      printInstSet(inst_liveOut[inst]);
                   }
               }
           }
@@ -219,6 +227,7 @@ namespace {
           return useless;
 
       }
+
 
       virtual void printInstSet(InstSet instSet){
 
@@ -241,9 +250,8 @@ namespace {
 
         errs() << "}\n";
         return;
-
-
     }
+
 
      virtual InstSet instLiveBefore(Instruction* inst, std::map<Instruction*, InstSet> &liveAfter) {
           InstSet liveBefore = new std::set<Instruction*>();
@@ -269,7 +277,6 @@ namespace {
           return liveBefore;
       }
 
-
       virtual bool canBeRemoved(Instruction *inst){
         unsigned opcode = inst->getOpcode();
 
@@ -279,19 +286,19 @@ namespace {
 
           return ( inst->isBinaryOp()
                    || inst->isCast()
-                   || inst->isShift()
-                   || opcode == 26 // Alloca
-                   || opcode == 27 // Load
-                   || opcode == 29 // GetElementPtr
-                   || opcode == 49 // Select
-                   || opcode == 53 // ExtractElement
-                   || opcode == 56 // ExtractValue
-                   || opcode == 45 // ICmp
-                   || opcode == 46 // FCmp
+                   || opcode == 30
+                   || opcode == 31
+                   || opcode == 33
+                   || opcode == 56
+                   || opcode == 60
+                   || opcode == 61
+                   || opcode == 63
+                   || opcode == 64
+                   || opcode == 52
+                   || opcode == 53
           );
 
     }
-
 
 
       virtual bool compareTwoInstSets(InstSet A, InstSet B)
@@ -369,7 +376,7 @@ namespace {
       }
 
 
-      virtual InstSet applyGenKill(InstSet input, InstSet gen, InstSet kill) {
+      virtual InstSet getNewIn(InstSet input, InstSet gen, InstSet kill) {
           InstSet result = new std::set<Instruction*>();
           std::set<Instruction*>::iterator it;
           for (it = input->begin(); it != input->end(); it++) {
@@ -386,6 +393,7 @@ namespace {
 
   };
 }
+
 
 
 char MyDCE::ID = 0;
