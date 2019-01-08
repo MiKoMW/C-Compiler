@@ -41,7 +41,7 @@ namespace {
     }
 
     // Return a set of Dead Instruction. set print_liveness to be true to print the live set.
-      virtual InstSet findDeadCode(Function &F,bool print_liveness){
+      virtual InstSet findDeadCode(Function &F, bool print_liveness){
 
           std::set<BasicBlock*> bb_WL;
           BBMap bb_liveIn;
@@ -51,7 +51,6 @@ namespace {
           Function::iterator funIter;
           BasicBlock::iterator bbIter;
           std::set<Instruction*>::iterator it;
-
 
           for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
 
@@ -65,7 +64,7 @@ namespace {
 
           }
 
-
+          // Solving Data flow Equation between basic blocks.
           while (!( bb_WL.empty() ))
           {
               BasicBlock *bb = *( bb_WL.begin() );
@@ -96,7 +95,7 @@ namespace {
               */
 
               // Calculate the In and Out set of the basic block.
-              InstSet liveOut = bbLiveAfter(bb, bb_liveIn);
+              InstSet liveOut = getLiveOut(bb, bb_liveIn);
               delete bb_liveOut[bb];
               bb_liveOut[bb] = liveOut;
 
@@ -123,6 +122,7 @@ namespace {
 
               */
 
+              // Work List Algorithm.
               if (!compareTwoInstSets(temp_liveIn,liveIn))
               {
                   delete temp_liveIn;
@@ -145,28 +145,31 @@ namespace {
           {
               BasicBlock *bb = &*funIter;
               bbIter = bb->end();
-              bool block_ender = true;
-              Instruction *this_inst, *succ_inst;
+              bool lastInst = true;
+              Instruction *cur_inst, *next_inst;
 
               do {
                   bbIter--;
-                  succ_inst = this_inst;
-                  this_inst = &*bbIter;
+                  next_inst = cur_inst;
+                  cur_inst = &*bbIter;
 
-                  inst_liveOut[this_inst] = new std::set<Instruction*>();
-                  if (block_ender) {
-                      block_ender = false;
-                      *(inst_liveOut[this_inst]) = *(bb_liveOut[bb]);
+                  inst_liveOut[cur_inst] = new std::set<Instruction*>();
+                  if (lastInst) {
+                      lastInst = false;
+                      *(inst_liveOut[cur_inst]) = *(bb_liveOut[bb]);
                   }
                   else {
-                      *(inst_liveOut[this_inst]) = *(inst_liveIn[succ_inst]);
+                      *(inst_liveOut[cur_inst]) = *(inst_liveIn[next_inst]);
                   }
 
-                  inst_liveIn[this_inst] = instLiveBefore(this_inst, inst_liveOut);
+                  inst_liveIn[cur_inst] = getInstIn(cur_inst, inst_liveOut);
               } while (bbIter != bb->begin());
+
+              // Debug----------------------------------------------------
+              //errs() << compareTwoInstSets(inst_liveIn[cur_inst],bb_liveIn[bb]);
           }
 
-          InstSet useless = new std::set<Instruction*>();
+          InstSet deadCode = new std::set<Instruction*>();
           for (funIter = F.begin(); funIter != F.end(); funIter++)
           {
               BasicBlock *bb = &*funIter;
@@ -174,8 +177,9 @@ namespace {
                   Instruction *inst = &*bbIter;
                   if (canBeRemoved(inst)) {
                       std::set<Instruction*>::iterator findInst = inst_liveOut[inst]->find(inst);
-                      if (findInst == inst_liveOut[inst]->end())
-                          useless->insert(inst);
+                      if (findInst == inst_liveOut[inst]->end()) {
+                          deadCode->insert(inst);
+                      }
                   }
               }
           }
@@ -209,11 +213,15 @@ namespace {
                   bool isFirst = true;
                   for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
                       inst = &*bbIter;
+
                       if(isa<PHINode>(inst)){
+
                       } else{
-                          if(isFirst && inst->isTerminator()){}
+
+                          if(isFirst && inst->isTerminator() && !isa<ReturnInst>(inst)){}
                           else{
                           printInstSet(inst_liveIn[inst]);}
+
                       }
                       isFirst = false;
                   }
@@ -224,7 +232,7 @@ namespace {
               }
           }
 
-          return useless;
+          return deadCode;
 
       }
 
@@ -253,7 +261,7 @@ namespace {
     }
 
 
-     virtual InstSet instLiveBefore(Instruction* inst, std::map<Instruction*, InstSet> &liveAfter) {
+     virtual InstSet getInstIn(Instruction *inst, std::map<Instruction *, InstSet> &liveAfter) {
           InstSet liveBefore = new std::set<Instruction*>();
           *liveBefore = *(liveAfter[inst]);
           if(!inst->isTerminator()){
@@ -363,7 +371,7 @@ namespace {
           return kill;
       }
 
-      virtual InstSet bbLiveAfter(BasicBlock* bb, std::map<BasicBlock*, InstSet> &liveBefore) {
+      virtual InstSet getLiveOut(BasicBlock *bb, std::map<BasicBlock *, InstSet> &liveBefore) {
           InstSet liveAfter = new std::set<Instruction*>();
           for (succ_iterator sit = succ_begin(bb); sit != succ_end(bb); sit++) {
               InstSet liveBefore_bb = liveBefore[*sit];
@@ -393,7 +401,6 @@ namespace {
 
   };
 }
-
 
 
 char MyDCE::ID = 0;
