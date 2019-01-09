@@ -16,8 +16,9 @@
 using namespace llvm;
 
 typedef std::set<Instruction*>* InstSet;
-typedef std::map<BasicBlock*, InstSet> BBMap;
-typedef std::map<Instruction*, InstSet> InstMap;
+typedef std::set<Value*>* ValSet;
+typedef std::map<BasicBlock*, ValSet> BBMap;
+typedef std::map<Instruction*, ValSet> InstMap;
 
 namespace {
 
@@ -28,7 +29,7 @@ namespace {
     virtual bool runOnFunction(Function &F) {
 
         // Print live set.
-        InstSet deadcode = findDeadCode(F,true);
+        InstSet deadcode = findDeadCode(F, true);
 
         while(deadcode->size() > 0){
             for(std::set<Instruction*>::iterator it = deadcode->begin(); it != deadcode->end(); it++) {
@@ -50,17 +51,18 @@ namespace {
           InstMap inst_liveOut;
           Function::iterator funIter;
           BasicBlock::iterator bbIter;
-          std::set<Instruction*>::iterator it;
+          std::set<Value*>::iterator ValIt;
+          std::set<Instruction*>::iterator InstIt;
 
-          for (Function::iterator bb = F.begin(), e = F.end(); bb != e; ++bb) {
+          for (Function::iterator bb = F.begin( ), e = F.end(); bb != e; ++bb) {
 
               BasicBlock *basicBlock = (&*bb);
               bb_WL.insert(basicBlock);
-              InstSet liveIn = new std::set<Instruction*>();
-              bb_liveIn.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveIn));
+              ValSet liveIn = new std::set<Value*>();
+              bb_liveIn.insert(std::pair<BasicBlock*, ValSet >(basicBlock, liveIn));
 
-              InstSet liveOut = new std::set<Instruction*>();
-              bb_liveOut.insert(std::pair<BasicBlock*, InstSet>(basicBlock, liveOut));
+              ValSet liveOut = new std::set<Value*>();
+              bb_liveOut.insert(std::pair<BasicBlock*, ValSet>(basicBlock, liveOut));
 
           }
 
@@ -71,52 +73,55 @@ namespace {
               bb_WL.erase(bb);
 
               // Calculate gen set and kill set for each block.
-              InstSet gen = genSet(bb);
-              InstSet kill = killSet(bb);
+              ValSet gen = genSet_NoPhi(bb);
+              ValSet kill = killSet(bb);
 
               // Debug ----------------------------------------------------------------
+
               /*
               errs() << *bb << "\n";
 
               errs() << "Gen size : " << gen->size() << "Kill Size : " << kill->size() << "\n";
 
-              for (it = gen->begin(); it != gen->end(); it++) {
+              for (ValIt = gen->begin(); ValIt != gen->end(); ValIt++) {
                   errs() << "Gen \n";
-                  (*it)->printAsOperand(errs(),false);
+                  (*ValIt)->printAsOperand(errs(),false);
                   errs() << "\n";
               }
 
-              for (it = kill->begin(); it != kill->end(); it++) {
+              for (ValIt = kill->begin(); ValIt != kill->end(); ValIt++) {
                   errs() << "Kill \n";
 
-                  (*it)->printAsOperand(errs(),false);
+                  (*ValIt)->printAsOperand(errs(),false);
                   errs() << "\n";
               }
+
               */
 
+
               // Calculate the In and Out set of the basic block.
-              InstSet liveOut = getLiveOut(bb, bb_liveIn);
+              ValSet liveOut = getLiveOut(bb, bb_liveIn);
               delete bb_liveOut[bb];
               bb_liveOut[bb] = liveOut;
 
-              InstSet temp_liveIn = bb_liveIn[bb];
+              ValSet temp_liveIn = bb_liveIn[bb];
               // In = Gen U (Out - Kill)
-              InstSet liveIn = updateInSet(liveOut, gen, kill);
+              ValSet liveIn = updateInSet(liveOut, gen, kill);
 
               // Debug ---------------------------------------------------------
               /*
               errs() << *bb << "\n";
               errs() << "liveIn size : " << liveIn->size() << "liveOut Size : " << liveOut->size() << "\n";
-              for (it = liveIn->begin(); it != liveIn->end(); it++) {
+              for (ValIt = liveIn->begin(); ValIt != liveIn->end(); ValIt++) {
                   errs() << "liveIn \n";
-                  (*it)->printAsOperand(errs(),false);
+                  (*ValIt)->printAsOperand(errs(),false);
                   errs() << "\n";
               }
 
-              for (it = liveOut->begin(); it != liveOut->end(); it++) {
+              for (ValIt = liveOut->begin(); ValIt != liveOut->end(); ValIt++) {
                   errs() << "liveOut \n";
 
-                  (*it)->printAsOperand(errs(),false);
+                  (*ValIt)->printAsOperand(errs(),false);
                   errs() << "\n";
               }
 
@@ -153,7 +158,7 @@ namespace {
                   next_inst = cur_inst;
                   cur_inst = &*bbIter;
 
-                  inst_liveOut[cur_inst] = new std::set<Instruction*>();
+                  inst_liveOut[cur_inst] = new std::set<Value*>();
                   if (lastInst) {
                       lastInst = false;
                       *(inst_liveOut[cur_inst]) = *(bb_liveOut[bb]);
@@ -176,7 +181,7 @@ namespace {
               for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
                   Instruction *inst = &*bbIter;
                   if (canBeRemoved(inst)) {
-                      std::set<Instruction*>::iterator findInst = inst_liveOut[inst]->find(inst);
+                      std::set<Value*>::iterator findInst = inst_liveOut[inst]->find(inst);
                       if (findInst == inst_liveOut[inst]->end()) {
                           deadCode->insert(inst);
                       }
@@ -184,26 +189,52 @@ namespace {
               }
           }
 
+        //Debug ----------------------------------------
+
+        /*
+        errs() << "Print Liveness \n";
+        for (funIter = F.begin(); funIter != F.end(); funIter++)
+        {
+            BasicBlock *bb = &*funIter;
+
+            //printInstSet(bb_liveIn[bb]);
+
+            errs() << *bb << "\n";
+            //printInstSet(bb_liveOut[bb]);
+
+            errs() << "genset:\n";
+            printInstSet(genSet(bb));
+
+
+            errs() << "genset Phi:\n";
+            printInstSet(genSet_Phi(bb));
+
+            errs() << "genset NoPhi:\n";
+            printInstSet(genSet_NoPhi(bb));
+
+            errs() << "killset:\n";
+            printInstSet(killSet(bb));
+
+
+            for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
+                Instruction *inst = &*bbIter;
+
+                printInstSet(inst_liveIn[inst]);
+                errs() << *inst << "\n";
+                printInstSet(inst_liveOut[inst]);
+
+            }
+
+            errs() << "\n";
+        }
+        errs() << "====================\n";
+
+    */
+
+
           // Print live set for each instruction need to be print.
           if(print_liveness){
-              //Debug ----------------------------------------
 
-              /*
-              //errs() << "Print Liveness \n";
-              for (funIter = F.begin(); funIter != F.end(); funIter++)
-              {
-                  BasicBlock *bb = &*funIter;
-                  for (bbIter = bb->begin(); bbIter != bb->end(); bbIter++) {
-                      Instruction *inst = &*bbIter;
-
-                      printInstSet(inst_liveIn[inst]);
-                      errs() << *inst << "\n";
-                      printInstSet(inst_liveOut[inst]);
-
-                  }
-              }
-              errs() << "====================\n";
-              */
 
 
               for (funIter = F.begin(); funIter != F.end(); funIter++)
@@ -237,7 +268,7 @@ namespace {
       }
 
 
-      virtual void printInstSet(InstSet instSet){
+      virtual void printInstSet(ValSet instSet){
 
         int size = instSet->size();
 
@@ -248,7 +279,7 @@ namespace {
         }
 
         int con = 0;
-        std::set<Instruction*>::iterator it;
+        std::set<Value*>::iterator it;
         for (it = instSet->begin(); it != instSet->end(); it++) {
             (*it)->printAsOperand(errs(),false);
             if(++con < size){
@@ -261,8 +292,8 @@ namespace {
     }
 
 
-     virtual InstSet getInstIn(Instruction *inst, std::map<Instruction *, InstSet> &liveAfter) {
-          InstSet liveBefore = new std::set<Instruction*>();
+     virtual ValSet getInstIn(Instruction *inst, std::map<Instruction *, ValSet> &liveAfter) {
+         ValSet liveBefore = new std::set<Value*>();
           *liveBefore = *(liveAfter[inst]);
           if(!inst->isTerminator()){
               liveBefore->erase(inst);
@@ -276,8 +307,11 @@ namespace {
               Instruction *used_inst = dyn_cast<Instruction>(used_val);
               if (used_inst != nullptr) {
                   //errs() << *used_inst << "\n";
-
                   liveBefore->insert(used_inst);
+              }
+
+              if(isa<Argument>(used_val)){
+                  liveBefore->insert(used_val);
               }
 
           }
@@ -309,7 +343,7 @@ namespace {
     }
 
 
-      virtual bool compareTwoInstSets(InstSet A, InstSet B) {
+      virtual bool compareTwoInstSets(ValSet A, ValSet B) {
           if(A->size() != B->size()){
               return false;
           }
@@ -323,23 +357,118 @@ namespace {
           return true;
       }
 
-      virtual InstSet genSet(BasicBlock* bb) {
-          InstSet gen = new std::set<Instruction*>();
+      virtual ValSet genSet(BasicBlock* bb) {
+          ValSet gen = new std::set<Value*>();
           BasicBlock::iterator bbit;
 
-          InstSet defined = new std::set<Instruction*>();
+          ValSet defined = new std::set<Value*>();
+
           for (bbit = bb->begin(); bbit != bb->end(); bbit++)
           {
               Instruction *inst = &*bbit;
               User::op_iterator opit;
+
+
               for (opit = inst->op_begin(); opit != inst->op_end(); opit++)
               {
                   Use *use = &*opit;
                   Value *used_val = use->get();
+
+                  if(isa<Argument>(used_val)){
+                      if (defined->find(used_val) == defined->end() ){
+                          gen->insert(used_val);
+                      }
+                      gen->insert(used_val);
+                  }
+
+
                   Instruction *used_inst = dyn_cast<Instruction>(used_val);
                   if (used_inst != nullptr) {
                       if (defined->find(used_inst) == defined->end() ){
                           gen->insert(used_inst);
+                      }
+                  }
+
+
+
+              }
+              defined->insert(inst);
+          }
+          delete defined;
+          return gen;
+      }
+
+      virtual ValSet genSet_Phi(BasicBlock* bb) {
+          ValSet gen = new std::set<Value*>();
+          BasicBlock::iterator bbit;
+
+          ValSet defined = new std::set<Value*>();
+
+          for (bbit = bb->begin(); bbit != bb->end(); bbit++)
+          {
+              Instruction *inst = &*bbit;
+              if(isa<PHINode>(inst)){
+
+                  PHINode * thisPhi = dyn_cast<PHINode>(inst);
+
+                  errs() <<"This Phi is : "  << *thisPhi << "\n";
+                  User::op_iterator opit;
+                  for (opit = inst->op_begin(); opit != inst->op_end(); opit++)
+                  {
+                      Use *use = &*opit;
+                      Value *used_val = use->get();
+
+                      if(isa<Argument>(used_val)){
+                          if (defined->find(used_val) == defined->end() ){
+                              gen->insert(used_val);
+                          }
+                          gen->insert(used_val);
+                      }
+
+
+                      Instruction *used_inst = dyn_cast<Instruction>(used_val);
+                      if (used_inst != nullptr) {
+                          if (defined->find(used_inst) == defined->end() ){
+                              gen->insert(used_inst);
+                          }
+                      }
+                  }
+              }
+              defined->insert(inst);
+          }
+          delete defined;
+          return gen;
+      }
+
+      virtual ValSet genSet_NoPhi(BasicBlock* bb) {
+          ValSet gen = new std::set<Value*>();
+          BasicBlock::iterator bbit;
+
+          ValSet defined = new std::set<Value*>();
+
+          for (bbit = bb->begin(); bbit != bb->end(); bbit++)
+          {
+              Instruction *inst = &*bbit;
+              if(!isa<PHINode>(inst)){
+                  User::op_iterator opit;
+                  for (opit = inst->op_begin(); opit != inst->op_end(); opit++)
+                  {
+                      Use *use = &*opit;
+                      Value *used_val = use->get();
+
+                      if(isa<Argument>(used_val)){
+                          if (defined->find(used_val) == defined->end() ){
+                              gen->insert(used_val);
+                          }
+                          gen->insert(used_val);
+                      }
+
+
+                      Instruction *used_inst = dyn_cast<Instruction>(used_val);
+                      if (used_inst != nullptr) {
+                          if (defined->find(used_inst) == defined->end() ){
+                              gen->insert(used_inst);
+                          }
                       }
                   }
               }
@@ -350,8 +479,9 @@ namespace {
       }
 
 
-      virtual InstSet killSet(BasicBlock* bb) {
-          InstSet kill = new std::set<Instruction*>();
+
+      virtual ValSet killSet(BasicBlock* bb) {
+          ValSet kill = new std::set<Value*>();
           for (BasicBlock::iterator bbit = bb->begin(); bbit != bb->end(); bbit++) {
               Instruction* inst = &*bbit;
               if(inst->isTerminator()){
@@ -367,21 +497,49 @@ namespace {
           return kill;
       }
 
-      virtual InstSet getLiveOut(BasicBlock *bb, std::map<BasicBlock *, InstSet> &inSet) {
-          InstSet outSet = new std::set<Instruction*>();
+      virtual ValSet getLiveOut(BasicBlock *bb, std::map<BasicBlock *, ValSet> &inSet) {
+
+          ValSet outSet = new std::set<Value*>();
           for (succ_iterator sit = succ_begin(bb); sit != succ_end(bb); sit++) {
-              InstSet liveBefore_bb = inSet[*sit];
-              for (std::set<Instruction*>::iterator it = liveBefore_bb->begin(); it != liveBefore_bb->end(); it++) {
+              ValSet liveBefore_bb = inSet[*sit];
+              for (std::set<Value*>::iterator it = liveBefore_bb->begin(); it != liveBefore_bb->end(); it++) {
                   outSet->insert(*it);
+              }
+
+              BasicBlock *basicBlock = *sit;
+              for (BasicBlock::phi_iterator iter = basicBlock->phis().begin(); iter!=basicBlock->phis().end();iter++){
+                  Instruction *inst = &*iter;
+                  PHINode *thisPhi = dyn_cast<PHINode>(inst);
+
+                  User::op_iterator opit;
+                  for (opit = thisPhi->op_begin(); opit != thisPhi->op_end(); opit++)
+                  {
+                      Use *use = &*opit;
+                      Value *used_val = use->get();
+                      if(bb == (*thisPhi).getIncomingBlock(*use)){
+
+                          if(isa<Argument>(used_val)){
+                              outSet->insert(used_val);
+
+                          }
+
+                          Instruction *used_inst = dyn_cast<Instruction>(used_val);
+                          if (used_inst != nullptr) {
+                              outSet->insert(used_val);
+
+                          }
+
+                      }
+                  }
               }
           }
           return outSet;
       }
 
       // In = Gen U (Out - Kill)
-      virtual InstSet updateInSet(InstSet out, InstSet gen, InstSet kill) {
-          InstSet result = new std::set<Instruction*>();
-          std::set<Instruction*>::iterator it;
+      virtual ValSet updateInSet(ValSet out, ValSet gen, ValSet kill) {
+          ValSet result = new std::set<Value *>();
+          std::set<Value*>::iterator it;
           for (it = out->begin(); it != out->end(); it++) {
               result->insert(*it);
           }
@@ -397,9 +555,7 @@ namespace {
   };
 }
 
-
 char MyDCE::ID = 0;
 
 __attribute__((unused)) static RegisterPass<MyDCE>
         X("live", "My dead code elimination"); // NOLINT
-
