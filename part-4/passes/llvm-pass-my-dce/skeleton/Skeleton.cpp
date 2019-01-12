@@ -554,4 +554,3 @@ char MyDCE::ID = 0;
 
 __attribute__((unused)) static RegisterPass<MyDCE>
         X("live", "My dead code elimination"); // NOLINT
-
