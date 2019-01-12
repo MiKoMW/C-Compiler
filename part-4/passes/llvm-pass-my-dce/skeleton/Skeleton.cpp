@@ -378,7 +378,6 @@ namespace {
                       if (defined->find(used_val) == defined->end() ){
                           gen->insert(used_val);
                       }
-                      gen->insert(used_val);
                   }
 
 
@@ -422,7 +421,6 @@ namespace {
                           if (defined->find(used_val) == defined->end() ){
                               gen->insert(used_val);
                           }
-                          gen->insert(used_val);
                       }
 
 
@@ -460,7 +458,6 @@ namespace {
                           if (defined->find(used_val) == defined->end() ){
                               gen->insert(used_val);
                           }
-                          gen->insert(used_val);
                       }
 
 
@@ -520,13 +517,11 @@ namespace {
 
                           if(isa<Argument>(used_val)){
                               outSet->insert(used_val);
-
                           }
 
                           Instruction *used_inst = dyn_cast<Instruction>(used_val);
                           if (used_inst != nullptr) {
                               outSet->insert(used_val);
-
                           }
 
                       }
@@ -559,3 +554,4 @@ char MyDCE::ID = 0;
 
 __attribute__((unused)) static RegisterPass<MyDCE>
         X("live", "My dead code elimination"); // NOLINT
+
