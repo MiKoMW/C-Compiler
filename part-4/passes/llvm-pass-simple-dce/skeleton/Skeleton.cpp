@@ -30,8 +30,6 @@ static bool removeDCE(Function &F){
     return dceFound;
 }
 
-
-
 namespace {
   struct SimpleDCE : public FunctionPass {
     static char ID;
